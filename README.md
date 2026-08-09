@@ -16,8 +16,10 @@ single DGX Spark, and adds a measurement the large labs cannot easily make.
 
 ## Status
 
-**M0 (survey and design lock) — complete.** The simulation stack is verified running on the
-target hardware: 6 arms × 6 tasks all construct and step on the DGX Spark's aarch64 GB10.
+**M0 — survey complete, direction under review.** The research survey is written and the
+simulation stack is verified on the target hardware (6 arms × 6 tasks all construct and step on
+the DGX Spark's aarch64 GB10). The experiment design below is a recommendation drawn from the
+survey; implementation has not started.
 
 ## The experiment
 

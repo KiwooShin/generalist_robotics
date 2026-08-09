@@ -1,7 +1,12 @@
 # Generalist Robotics — Project Plan
 
 **Repo:** https://github.com/KiwooShin/generalist_robotics
-**Started:** 2026-08-09 · **Design locked from research:** 2026-08-09 (see `research.md` §7)
+**Started:** 2026-08-09
+
+> **Status: this plan is a recommendation, not a settled decision.** The stack in §3 and the
+> contribution in §4 follow from the survey in `research.md`, and the simulator has been verified
+> running on the Spark — but the direction is yours to choose after reading the research. Nothing
+> beyond stack verification has been built.
 
 ## 1. The paradigm
 
@@ -34,7 +39,7 @@ efficiency is a property of the pre-trained prior, not the fine-tuning procedure
    and robotics companies hiring research engineers.
 2. **Learning** — `research.md`: a living, deep survey, maintained as new work appears.
 
-## 3. Locked stack (M0)
+## 3. Proposed stack (M0) — pending review
 
 | Decision | Choice |
 |---|---|
