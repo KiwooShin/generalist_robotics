@@ -1,96 +1,130 @@
 # Generalist Robotics — Project Plan
 
 **Repo:** https://github.com/KiwooShin/generalist_robotics
-**Started:** 2026-08-09
+**Started:** 2026-08-09 · **Design locked from research:** 2026-08-09 (see `research.md` §7)
 
 ## 1. The paradigm
 
-Train **one policy model across many robot embodiments**, then adapt it to a **new, unseen robot** with a fraction of the data/compute needed to train from scratch.
+Train **one policy across many robot embodiments**, then adapt it to a **new, unseen robot** with
+a fraction of the data and compute needed to train from scratch.
 
 ```
                  ┌─────────────────────────────┐
-  Robot A demos ─┤                             │
-  Robot B demos ─┤   Cross-embodiment          │──► fine-tune with few demos ──► Robot X
-  Robot C demos ─┤   pre-training              │        (new robot, hours)
-  Robot D demos ─┤   (one generalist policy)   │
+  Panda demos ───┤                             │
+  Sawyer demos ──┤   Cross-embodiment          │──► few demos ──► UR5e   (near transfer)
+  IIWA demos ────┤   pre-training              │──► few demos ──► SO-101 (far transfer)
+  Kinova demos ──┤   (one generalist policy)   │
                  └─────────────────────────────┘
-       vs. baseline: train Robot X from scratch (much more data + time)
+       vs. baseline: train the new arm from scratch (far more data + time)
 ```
 
-This is the central bet of Physical Intelligence (π0/π0.5), DeepMind Gemini Robotics 1.5
-(Motion Transfer), NVIDIA GR00T, Skild, and Generalist AI. The project reproduces the
-core phenomenon — **positive transfer across embodiments + fast adaptation** — at a scale
-that fits one DGX Spark, with headline demo videos.
+This is the central bet of Physical Intelligence (π0.5, π0.7), DeepMind (Gemini Robotics 1.5's
+Motion Transfer), NVIDIA GR00T, Skild, and Generalist AI. The project reproduces the core
+phenomenon — **positive transfer across embodiments plus fast adaptation** — at a scale that fits
+one DGX Spark, with a contribution the big labs cannot easily make (§4), and headline demo videos.
+
+**The one number that motivates everything** (`research.md` §0): the same <200-demo recipe took
+the SO-101 arm to 6.7% success with Gemini On-Device 1 and 53.3% with On-Device 2. *Adaptation
+efficiency is a property of the pre-trained prior, not the fine-tuning procedure.*
 
 ## 2. Two deliverables
 
-1. **Showcase** — fancy demo videos (README GIFs + full videos per milestone) proving the
-   paradigm works: same brain driving different robots, and a new robot learned in hours.
-   Target audience: frontier AI labs & robotics companies (research engineer roles).
-2. **Learning** — `research.md`: a living, deep survey of generalist-robotics research,
-   maintained as papers are read and revisited.
+1. **Showcase** — demo videos (README GIFs per milestone + a full video) proving the paradigm:
+   one brain driving many bodies, and a new robot learned in hours. Audience: frontier AI labs
+   and robotics companies hiring research engineers.
+2. **Learning** — `research.md`: a living, deep survey, maintained as new work appears.
 
-## 3. Research exploration pipeline (sub-agents)
+## 3. Locked stack (M0)
 
-Five parallel research agents, each owning a slice; results synthesized into `research.md`:
-
-| Agent | Scope |
+| Decision | Choice |
 |---|---|
-| 1 | Physical Intelligence lineage: π0, FAST, Hi Robot, π0.5, knowledge insulation, π*0.6, openpi repo practicalities |
-| 2 | DeepMind lineage: RT-1/2, RT-X/OXE, RoboCat, ALOHA Unleashed, Gemini Robotics 1.0 → On-Device → 1.5 (Motion Transfer) |
-| 3 | Open cross-embodiment models: Octo, OpenVLA(-OFT), CrossFormer, HPT, RDT-1B, GR00T N1/N1.5, SmolVLA, LAPA/UniVLA + morphology-aware architectures |
-| 4 | Industry landscape: Generalist AI (GEN-0), Skild, Figure Helix, 1X, TRI/BD LBMs, Covariant, AgiBot… + what makes demo videos impressive |
-| 5 | Datasets/benchmarks/sim (OXE, DROID, LIBERO, SimplerEnv, RoboCasa, ManiSkill, MuJoCo Menagerie, LeRobot) + new-robot adaptation techniques |
+| Simulator | **robosuite 1.5 + MimicGen + robomimic** (MuJoCo — robot-agnostic tasks, aarch64-native) |
+| Scale-up option | ManiSkill3 for GPU-parallel eval — *gated on verifying SAPIEN aarch64 wheels on the Spark* |
+| Training arms | Panda, Sawyer, IIWA, Kinova Gen3 (same gripper class) |
+| Held-out (near) | UR5e — "interpolation" |
+| Held-out (far) | SO-101 via MuJoCo Menagerie — "extrapolation", 5-DoF |
+| Tasks | Lift, Stack, PickPlace-Can, NutAssembly-Square, Door, ToolHang (verify per-arm reachability) |
+| Data | ~10 source demos/task → MimicGen-regenerate ~1,000 per (task, arm); held-out adaptation sets {5,10,25,50,100,300} |
+| Format | **LeRobotDataset v3** (so π0/GR00T/SmolVLA/X-VLA/ACT all train on our data unchanged) |
+| Action head | OpenVLA-OFT recipe: parallel decoding, action chunking, continuous actions, L1/flow |
+| Policy A (ours) | HPT-style per-embodiment stems + shared trunk, ~50–200M — full training on Spark |
+| Policy B (pretrained) | **X-VLA-0.9B** primary · SmolVLA-450M fallback · GR00T N1.5 if we want NVIDIA's supported pipeline |
 
-Ongoing: when a new relevant paper appears, add an entry to `research.md` (same template).
+Rationale for every row is in `research.md` §7.2.
 
-## 4. Build roadmap (draft — to be locked after research synthesis)
+## 4. The distinctive contribution
 
-- **M0 — Survey & design lock.** `research.md` v1; pick simulator, robot set, model family,
-  and the exact headline experiment.
-- **M1 — Multi-embodiment task suite.** One simulator (likely MuJoCo-based), 4–6 arms from
-  MuJoCo Menagerie (e.g. Franka, UR5e, xArm7, Kinova, SO-101, WidowX), shared tabletop
-  tasks (reach / push / lift / pick-place / drawer), unified obs+action interface,
-  scripted-expert or teleop data generation. Demo: grid video of all robots doing all tasks.
-- **M2 — Per-robot baselines (from scratch).** Small transformer policy (ACT/diffusion-style)
-  per robot; establish success rates and the data/compute cost curve of "from scratch."
-- **M3 — Cross-embodiment pre-training.** One generalist policy across all training robots
-  (embodiment conditioning: per-robot stem/head or embodiment token). Show no regression vs
-  per-robot baselines + any positive transfer. Demo: "one brain, many bodies" montage.
-- **M4 — Headline: fast adaptation to held-out robot.** Fine-tune pretrained model on the
-  held-out arm with {10, 25, 50, 100} demos vs from-scratch. Deliver success-vs-demos and
-  success-vs-GPU-hours curves. Demo: split-screen learning race + animated curves.
-- **M5 — Scale up with an open VLA.** LoRA fine-tune an open foundation model (candidates:
-  π0.5/openpi, GR00T N1.5, SmolVLA — pick after research) on the same suite; compare
-  few-shot adaptation vs our small model. Language-conditioned demos.
-- **M6 — Showcase polish.** README with GIFs per milestone, full demo video, write-up of
-  results; optionally a project page.
+A pure reproduction is a weak portfolio piece. Simulation makes possible what no real-robot lab
+can run: **decomposing the embodiment gap into its visual and kinematic components** by rendering
+arm A's appearance while executing arm B's kinematics, in a 2×2 factorial. This answers a question
+the field currently hand-waves — *when a policy fails on a new robot, is it because the robot
+looks different or moves differently?*
 
-Each milestone ends with a pushed demo video/GIF in the README (standing preference).
+Secondary angles: the delta-EEF vs padded-joint-space interface ablation; a head-to-head of the
+four embodiment-conditioning families (none / ID token / per-arm stems / soft prompts) at matched
+scale, which nobody has published; and kinematic-graph morphology encoding for manipulation, which
+is mature in locomotion RL and nearly absent from manipulation VLAs.
 
-## 5. Demo video concepts (showcase priority)
+## 5. Roadmap
 
-- **"One brain, many bodies"**: same language command, N robots executing simultaneously in a grid.
-- **Learning race**: split screen — pretrained-adapted vs from-scratch on the new robot at
-  equal wall-clock/demos, with live success counters.
-- **Data-efficiency animation**: success-vs-demos curves drawing themselves; the gap is the story.
-- **"New robot in an hour"**: timeline video — demos collected → fine-tune → deployment reel.
-- Norms from the field: disclose real-time vs sped-up, prefer uncut takes, include a failure reel.
+- **M0 — Survey & design lock.** ✅ `research.md` v1 (§0–§8); stack chosen. Remaining: verify the
+  2026-era claims, confirm robosuite multi-arm behavior hands-on, smoke-test MuJoCo on the Spark.
+- **M1 — Multi-embodiment task suite.** robosuite tasks running on all 6 arms behind one unified
+  obs/action interface; per-arm reachability audit; scripted/teleop source demos.
+  *Demo: grid video of all 6 arms doing all tasks.*
+- **M2 — Data engine.** MimicGen regeneration per (task, arm), export to LeRobotDataset v3,
+  per-embodiment normalization statistics handled correctly from day one.
+  *Demo: one source demo fanning out into five arms' trajectories.*
+- **M3 — Per-arm baselines from scratch.** Establishes the from-scratch cost curve every later
+  claim is measured against.
+- **M4 — Cross-embodiment pre-training.** One policy across the 4 training arms with embodiment
+  conditioning; show no regression vs per-arm baselines, plus positive transfer.
+  *Demo: "one brain, many bodies" — identical weights, 4 arms, simultaneous.*
+- **M5 — Headline: fast adaptation to held-out arms.** Success-vs-demos and success-vs-GPU-hours
+  curves for pretrained-on-4 vs pretrained-on-1 vs from-scratch, on UR5e and SO-101.
+  *Demo: split-screen learning race with live success counters + animated curves.*
+- **M6 — Gap decomposition + conditioning ablation.** The distinctive contribution (§4).
+  *Demo: 2×2 factorial visualization.*
+- **M7 — Scale up with an open VLA.** LoRA/full fine-tune X-VLA (or SmolVLA) on the same suite;
+  compare few-shot adaptation against our small model. Language-conditioned demos.
+- **M8 — Showcase polish.** README with per-milestone GIFs, full demo video, results write-up,
+  optional project page.
 
-## 6. Hardware & constraints
+Every milestone ends with a pushed demo video/GIF in the README.
 
-- **DGX Spark**: GB10, 128 GB unified memory, ARM CPU, ~1 PFLOP FP4 (modest BF16 throughput,
-  ~273 GB/s bandwidth). Implications:
-  - From-scratch models: ≤~200M params comfortably.
-  - Open VLAs (2–3B, e.g. π0.5 / GR00T / SmolVLA-class): LoRA fine-tune feasible in memory;
-    throughput is the constraint — plan runs in hours-to-days, not minutes.
-  - Sim data generation: CPU/GPU headless MuJoCo, cheap.
-- Simulation-first (no real robot assumed); real-to-sim credibility via SimplerEnv-style evals
-  if applicable.
+## 6. Demo video specification
 
-## 7. Success criteria
+Formats that earn technical credibility (derived from the field survey, `research.md` §5):
+- **One brain, many bodies** — identical weights, N arms, one grid, one take.
+- **Learning race** — split screen, pretrained-adapted vs from-scratch, live success counter.
+- **Counted repetitions** — on-screen counters beat claimed percentages.
+- **Perturbation reel** — objects shoved mid-episode, on camera, uncut.
+- **Failure reel** — short and honest; buys more credibility than it costs.
+- **Data-engine shot** — MimicGen fanning one demo across five arms.
 
-1. A pretrained cross-embodiment policy adapts to a held-out robot with **≥5–10× fewer demos**
-   (or GPU-hours) than from-scratch at matched success rate — clearly visualized.
-2. README demo videos good enough to lead a job-application portfolio.
-3. `research.md` deep enough to answer interview questions on any major generalist-robotics paper.
+Non-negotiable norms: label real-time vs sped-up on every clip; prefer uncut takes; state the demo
+count and seed behind every number shown.
+
+## 7. Hardware & constraints
+
+**DGX Spark**: GB10, 128 GB unified memory, ARM (aarch64), sm_121, ~273 GB/s bandwidth.
+- Memory is the advantage — it fits full fine-tunes that normally need an A100-80GB.
+- Bandwidth is the constraint — roughly 7× below A100/H100, so wall-clock scales sharply with
+  parameter count. Sub-1B is where research loops stay fast.
+- ARM is the risk — prefer NVIDIA NGC containers over generic pip wheels; verify aarch64 builds
+  early for anything with compiled CUDA extensions (SAPIEN, flash-attn, jaxlib).
+- Pure MuJoCo is the safe path and runs natively.
+
+## 8. Success criteria
+
+1. A cross-embodiment pretrained policy adapts to a held-out arm with **≥5–10× fewer demos** (or
+   GPU-hours) than from-scratch at matched success — with the pretrained-on-one-arm control
+   included, so the claim is about *multi-embodiment* pretraining specifically.
+2. The visual/kinematic gap decomposition produces a clear, defensible finding.
+3. README demo videos good enough to lead a job-application portfolio.
+4. `research.md` deep enough to answer interview questions on any major paper in the field.
+
+## 9. Conventions
+
+Code style and repo rules: `coding_rule.md`. Daily logs: `progress/YYYY-MM-DD.md`.
+Research notes: `research.md`. Commit per change and push.
