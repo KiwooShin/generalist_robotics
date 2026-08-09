@@ -82,7 +82,18 @@ python -m http.server 8765 --bind 127.0.0.1
 # open http://127.0.0.1:8765/research_page.html
 ```
 
-Stop the server with `pkill -f "http.server 8765"`. GitHub also renders
+**To read it from another machine on the tailnet** (e.g. a laptop, while the repo lives on the
+Spark), bind to the Tailscale address instead of loopback:
+
+```bash
+python -m http.server 8765 --bind "$(tailscale ip -4)"
+# then browse to http://spark-ddbc:8765/research_page.html
+```
+
+That keeps the page on the private tailnet rather than exposing it to the LAN or the internet.
+
+Stop the server with `pkill -f "[h]ttp\.server 8765"` — the bracket keeps the pattern from
+matching (and killing) the shell running the command. GitHub also renders
 [research.md](research.md) directly, tables and all.
 
 ## Hardware
