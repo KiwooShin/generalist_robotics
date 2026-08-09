@@ -582,10 +582,362 @@ ALOHA Unleashed (Oct 2024) → Gemini Robotics 1.0 + ER (Mar 2025) → On-Device
   RoboCat-style autonomous practice (36%→74%) can substitute for human demos once a seed policy
   exists — both fit a compute-poor setting.
 
-## 3. Open cross-embodiment models
+## 3. Open cross-embodiment models ⏳
 
-*(agent running — Octo, OpenVLA/-OFT, CrossFormer, HPT, RDT-1B, GR00T N1/N1.5, SmolVLA,
-LAPA, UniVLA, …)*
+*The models we could actually download and train. Ranked feasibility for DGX Spark at the
+end of §7.*
+
+### Octo (UC Berkeley, May 2024)
+- **TL;DR**: Small open transformer generalist pre-trained on 800K OXE trajectories,
+  explicitly designed for cheap fine-tuning to new robots with new observation/action spaces.
+- **Key idea**: Tokenize arbitrary observation streams (multiple cameras, proprioception,
+  language/goal-image tasks) into a shared transformer sequence, then attach lightweight
+  "readout" tokens whose embeddings feed a diffusion action head. Because inputs and outputs
+  attach via small encoders/heads, **a new robot needs only new tokenizers/heads plus trunk
+  fine-tuning — no architectural surgery.**
+- **Architecture & data**: Octo-Small (27M) and Octo-Base (93M); ViT-style trunk, language via
+  T5, diffusion action head predicting chunks; 800K trajectories from 25 OXE datasets.
+- **Results**: Beat RT-1-X and matched/beat RT-2-X (55B) zero-shot across institutions;
+  fine-tunes to entirely new embodiments (new action spaces, new sensors) with **~100
+  demonstrations in under 5 hours on a single consumer GPU**, beating from-scratch and prior
+  transfer baselines by ~20%.
+- **Relevance**: The canonical small-scale demonstration of this project's paradigm, and its
+  fine-tuning protocol is trivially within Spark budget (full fine-tune, not just LoRA).
+  Absolute performance is now below 2025–26 VLAs, but it is an excellent fast-iteration baseline.
+- **Links**: [arXiv 2405.12213](https://arxiv.org/abs/2405.12213) · [code](https://github.com/rail-berkeley/octo) · [project](https://octo-models.github.io/)
+
+### OpenVLA (Stanford/Berkeley/TRI/GDM, Jun 2024)
+- **TL;DR**: The reference open 7B VLA — Llama-2-based, trained on 970K OXE episodes, with a
+  well-documented LoRA fine-tuning path for new robots.
+- **Key idea**: Fine-tune a Prismatic VLM to emit robot actions as discretized tokens (256 bins
+  per dimension) in the LLM vocabulary, inheriting web-scale visual-semantic priors. New-robot
+  adaptation is parameter-efficient fine-tuning of the same next-token objective.
+- **Architecture & data**: 7B; fused SigLIP + DINOv2 vision encoders, Llama-2-7B backbone;
+  autoregressive discrete action tokens; 970K OXE episodes.
+- **Results**: Beat RT-2-X (55B) by 16.5% absolute across 29 tasks with 7× fewer params. LoRA
+  (~1.4% of params) matches full fine-tuning on new-robot setups in **10–15 h on a single
+  A100**; 4-bit inference fits ~7 GB.
+- **Relevance**: Proven pretrain→LoRA workflow with the largest community ecosystem (most
+  2025–26 papers ablate against it). On Spark: LoRA fits easily in 128 GB, but 7B autoregressive
+  training is compute-bound — expect multi-day fine-tunes; 3 Hz native inference is slow for
+  control without OFT-style changes.
+- **Links**: [arXiv 2406.09246](https://arxiv.org/abs/2406.09246) · [code](https://github.com/openvla/openvla)
+
+### OpenVLA-OFT (Stanford, Feb 2025)
+- **TL;DR**: An "Optimized Fine-Tuning" recipe — parallel decoding + action chunking +
+  continuous actions + L1 loss — that turns OpenVLA into a near-SOTA, 26× faster policy.
+  **The recipe matters more than the model.**
+- **Key idea**: Systematically ablates VLA adaptation design choices and finds that replacing
+  autoregressive discrete tokens with single-forward-pass parallel decoding of continuous action
+  chunks under an L1 regression loss dramatically improves both success and latency. OFT+ adds
+  FiLM language conditioning for language-sensitive bimanual tasks.
+- **Results**: LIBERO average **76.5% → 97.1%**, 26× action-generation throughput; strong
+  bimanual ALOHA results outperforming π0 and RDT-1B fine-tuned on the same data.
+- **Relevance**: Current best practice for adapting *any* pretrained VLA to a new robot, and it
+  transfers directly to smaller backbones. **Adopt this action-head recipe regardless of which
+  backbone this project picks** — it is backbone-agnostic and Spark-friendly.
+- **Links**: [arXiv 2502.19645](https://arxiv.org/abs/2502.19645) · [project](https://openvla-oft.github.io/)
+
+### CrossFormer (UC Berkeley, Aug 2024)
+- **TL;DR**: One 130M transformer controlling manipulation arms, bimanual systems, wheeled
+  robots, quadrupeds, and quadcopters — **without aligning observation/action spaces**.
+- **Key idea**: Extends Octo to maximally heterogeneous embodiments: variable-length observation
+  token sequences per embodiment plus separate action readout heads per action-space class,
+  trained jointly. Shows **no negative transfer** vs specialist policies despite 4 orders of
+  magnitude difference in control frequency/DoF across the data.
+- **Architecture & data**: ~130M; per-embodiment tokenizers and action heads; 900K trajectories
+  spanning 20 embodiments (OXE manipulation, GNM navigation, locomotion, aviation).
+- **Results**: Matches embodiment-specific specialists on all evaluated platforms; substantially
+  outperforms prior aligned-action-space cross-embodiment methods.
+- **Relevance**: Directly validates "single trunk + per-embodiment I/O heads" across radically
+  different morphologies — the same structural bet as this project, at a size (130M) where full
+  fine-tuning on a Spark is easy. Caveat: no polished few-shot new-embodiment protocol; JAX code.
+- **Links**: [arXiv 2408.11812](https://arxiv.org/abs/2408.11812) · [project](https://crossformer-model.github.io/)
+
+### HPT — Heterogeneous Pre-trained Transformers (MIT CSAIL / Meta, Sep 2024)
+- **TL;DR**: Embodiment-specific **stems** tokenize each robot's proprioception + vision into a
+  fixed number of tokens feeding a shared pre-trained **trunk** — the cleanest architectural
+  instantiation of "pre-train the trunk, swap stems for new robots."
+- **Key idea**: Every embodiment gets a small stem (cross-attention tokenizers mapping arbitrary
+  camera/proprio configurations to ~16 tokens each); a large shared transformer trunk learns
+  task- and embodiment-agnostic representations; small per-task heads decode actions. **Adapting
+  to a new robot = instantiate a fresh stem + head and train them (optionally with the trunk),
+  transferring the trunk weights.**
+- **Architecture & data**: Scaled to 1B+ params and 50+ datasets (real teleop, simulation, human
+  video); standard transformer trunk; MLP heads outputting normalized continuous actions.
+- **Results**: Scaling laws hold across model/data size; the pre-trained trunk improves
+  fine-tuned success by **>20%** on unseen tasks vs from-scratch and vs Octo/RT baselines
+  (NeurIPS 2024).
+- **Relevance**: **Architecturally the closest published match to this project's paradigm.** All
+  sizes (3M–1B) released; even HPT-XL full-fine-tunes comfortably on a Spark. Caveats: proprio +
+  vision only (no language), research-grade code, absolute task performance trails modern VLAs —
+  best treated as the *architectural blueprint to reimplement* with a modern trunk.
+- **Links**: [arXiv 2409.20537](https://arxiv.org/abs/2409.20537) · [code](https://github.com/liruiw/HPT) · [project](https://liruiw.github.io/hpt/)
+
+### RDT-1B (Tsinghua, Oct 2024)
+- **TL;DR**: 1.2B diffusion transformer for bimanual manipulation with a unified 128-dim
+  "physically interpretable" action space covering heterogeneous robots.
+- **Key idea**: Handle cross-embodiment heterogeneity by embedding every robot's action into a
+  **fixed 128-slot vector where each slot has fixed physical meaning** (joint positions, EEF
+  pose, gripper), masking unused slots. A DiT denoises action chunks conditioned on SigLIP
+  vision + T5 language. Enables cross-robot pretraining *without* per-dataset normalization.
+- **Architecture & data**: 1.2B DiT; pre-trained on 46 datasets / 1M+ trajectories, fine-tuned
+  on 6K self-collected ALOHA bimanual episodes.
+- **Results**: SOTA bimanual manipulation; zero-shot generalization to unseen objects/scenes;
+  **few-shot (1–5 demo) learning of new skills**; ICLR 2025.
+- **Relevance**: The unified-slot action space is the reference design for proprioception/action
+  padding schemes and a pragmatic alternative to per-robot heads. At 1.2B, full fine-tuning fits
+  a Spark easily.
+- **Links**: [arXiv 2410.07864](https://arxiv.org/abs/2410.07864) · [code](https://github.com/thu-ml/RoboticsDiffusionTransformer)
+
+### RDT2 (Tsinghua, Sep 2025 / ICML 2026)
+- **TL;DR**: First open foundation model claiming **zero-shot deployment on unseen embodiments**
+  for open-vocabulary pick/place/wipe tasks, trained by scaling gripper-standardized UMI human data.
+- **Key idea**: Sidestep embodiment heterogeneity entirely — collect 10K+ hours of handheld-UMI
+  human manipulation in a standardized *gripper-relative EEF* action space that any two-finger
+  arm can execute. Two variants: RDT2-VQ (Qwen2.5-VL-7B + Residual-VQ action tokens, strong
+  instruction following) and RDT2-FM (flow matching, low latency).
+- **Relevance**: Complementary to this project's paradigm — instead of fine-tuning per robot, it
+  standardizes the action interface so "new robot" needs only calibration. Limited to
+  parallel-jaw gripper embodiments; ~8B means LoRA-only and slow on Spark.
+- **Links**: [project](https://rdt-robotics.github.io/rdt2/) · [code](https://github.com/thu-ml/RDT2)
+
+### GR00T N1 → N1.5 → N1.7 (NVIDIA, Mar 2025 → 2026)
+- **TL;DR**: The open humanoid/manipulator foundation model line with the most
+  production-ready new-embodiment registration pipeline — and NVIDIA explicitly targets DGX
+  Spark as the fine-tuning appliance.
+- **Key idea**: Dual-system VLA — System 2 (VLM, ~10 Hz) interprets scene and instruction;
+  System 1 (flow-matching DiT action expert, ~120 Hz chunks) denoises continuous actions
+  conditioned on VLM features and **per-embodiment state/action projectors**. Cross-embodiment
+  is handled by embodiment-tagged input/output projectors around a shared core. N1.5 **freezes**
+  the upgraded VLM (Eagle 2.5) to preserve web grounding, and adds FLARE future-latent alignment.
+- **Architecture & data**: N1 ~2.2B (Eagle-2 + DiT); N1.5 ~3B (frozen Eagle 2.5 + DiT); N1.7 3B
+  on a Cosmos-Reason2-2B backbone with large-scale egocentric-video pretraining and an "Action
+  Cascade" reasoning→DiT coupling. Data pyramid: web/human video, DexMimicGen synthetic, real
+  humanoid teleop.
+- **Results**: N1.5 lifted language following 46.6% → **93.3%** on GR-1 and improved low-data
+  post-training efficiency; 0% → 15% zero-shot novel-object handling. Post-training demo counts
+  reported at **30 / 100 / 300 demos per task** (45% avg at 100 demos vs 33.4% for Diffusion
+  Policy). Integrated into LeRobot v0.4.0 for turnkey post-training. A GR00T N2 built on
+  world-model research was previewed in 2026.
+- **Relevance**: The `EmbodimentTag` + new-head registration workflow **is** "pre-train across
+  robots, rapidly fine-tune to a new one," with mature tooling. Community fine-tunes run on
+  single 4090/A6000-class GPUs (~25 GB), so Spark is comfortable. ⚠️ A reported third-party
+  DGX Spark run of the official fine-tuning workflow completed in ~5 h 47 m peaking at
+  90.8/128 GB — **verify before relying on this number**.
+- **Links**: [arXiv 2503.14734](https://arxiv.org/abs/2503.14734) · [code](https://github.com/NVIDIA/Isaac-GR00T) · [N1.5 weights](https://huggingface.co/nvidia/GR00T-N1.5-3B)
+
+### SmolVLA (HuggingFace LeRobot, Jun 2025)
+- **TL;DR**: 450M-param community-data VLA that matches much larger models on SO-100/LIBERO-class
+  tasks and trains on a single consumer GPU.
+- **Key idea**: Compact SmolVLM-2 backbone (with early-layer skipping) + flow-matching action
+  expert using interleaved cross/self-attention; pre-trained **purely on ~487 crowd-sourced
+  LeRobot community datasets** (<30K episodes, ~10M frames) — proof that curated small
+  heterogeneous data + small models is viable. Asynchronous inference decouples perception from
+  actuation for 2× throughput.
+- **Results**: Matches or outperforms ACT and larger VLAs on LIBERO, Meta-World, and real
+  SO-100/SO-101 tasks; **trains on one consumer GPU**, inference possible on CPU.
+- **Relevance**: The most Spark-friendly modern VLA — full fine-tuning (not just LoRA) in hours,
+  fast iteration loops, native LeRobot tooling for adding a new embodiment. Pretraining
+  distribution is hobbyist-arm-skewed, so transfer to dissimilar morphologies leans on the
+  fine-tune.
+- **Links**: [arXiv 2506.01844](https://arxiv.org/abs/2506.01844) · [blog](https://huggingface.co/blog/smolvla) · [weights](https://huggingface.co/lerobot/smolvla_base)
+
+### X-VLA (Tsinghua AIR et al., Oct 2025 / ICLR 2026)
+- **TL;DR**: A 0.9B flow-matching transformer where per-embodiment **soft prompts** (learnable
+  embedding sets per data source) handle heterogeneity — SOTA small cross-embodiment VLA.
+- **Key idea**: Instead of per-robot stems/heads, keep one clean transformer encoder and give
+  each embodiment/data-domain a small set of **learnable prompt tokens** conditioning the whole
+  network. **Adaptation to a new robot = initialize a new soft prompt (tiny parameter count) +
+  fine-tune** — both cheap and strong.
+- **Architecture & data**: 0.9B; standard transformer encoders + flow matching; pre-trained on
+  ~290K episodes across 7 platforms (single-arm to bimanual).
+- **Results**: LIBERO 98.1%, CALVIN 4.43, SimplerEnv WidowX 95.8%, Google Robot 83.5%; 1st place
+  in the AgiBot World Challenge @ IROS 2025. Apache-2.0; 8 per-embodiment fine-tuned checkpoints
+  + LoRA adapters released; LeRobot integration.
+- **Relevance**: **Arguably the best current fit for this project** — sub-1B (full fine-tune
+  fits Spark memory *and* compute), explicit embodiment-conditioning mechanism, documented
+  fine-tune recipes, permissive license.
+- **Links**: [arXiv 2510.10274](https://arxiv.org/abs/2510.10274) · [code](https://github.com/2toinf/X-VLA)
+
+### LAPA — Latent Action Pretraining from Videos (KAIST/UW/MSR/NVIDIA/AI2, Oct 2024)
+- **TL;DR**: Pre-train a VLA on **actionless video** by learning VQ-VAE latent actions between
+  frames, then map latents to real actions with a small robot dataset — 30× cheaper pretraining.
+- **Key idea**: (1) a VQ-VAE quantizes inter-frame dynamics into discrete latent actions; (2) a
+  VLM is pre-trained to predict latent actions from observation + instruction (works on human
+  video); (3) small-scale fine-tuning grounds latents into the target robot's action space.
+  **The embodiment gap is absorbed by the latent interface.**
+- **Results**: +6.2% over the ground-truth-action equivalent trained on the same data across
+  cross-task/cross-environment evals; **~30× pretraining compute efficiency**. CoRL 2024
+  LangRob best paper.
+- **Relevance**: The cheapest route to a cross-embodiment prior when target robots have little
+  labeled data; the grounding stage *is* a rapid fine-tune. The released 7B model is heavy for
+  Spark — the method applied to a smaller backbone is the interesting part.
+- **Links**: [arXiv 2410.11758](https://arxiv.org/abs/2410.11758)
+
+### UniVLA (OpenDriveLab, May 2025)
+- **TL;DR**: Learns **task-centric** latent actions from cross-embodiment video (filtering out
+  embodiment-specific motion), reaching SOTA at 1/20 of OpenVLA's pretraining compute.
+- **Key idea**: A latent action model with DINOv2 features and language conditioning separates
+  task-relevant dynamics from embodiment/camera nuisance factors, so one latent policy learns
+  from arbitrary embodiments and viewpoints (including human video); per-robot decoding heads
+  ground latents into actions.
+- **Results**: SOTA on LIBERO, CALVIN, SimplerEnv, R2R navigation and real manipulation; beats
+  OpenVLA with **<1/20 pretraining compute (~960 A100-h) and 1/10 downstream data**; RSS 2025.
+- **Relevance**: New-embodiment adaptation = train a small action decoder + brief fine-tune,
+  with most knowledge in the frozen latent planner — a strong match for Spark budgets.
+- **Links**: [arXiv 2505.06111](https://arxiv.org/abs/2505.06111) · [code](https://github.com/OpenDriveLab/UniVLA)
+
+### GO-1 / ViLLA (AgiBot, Mar 2025)
+- **TL;DR**: Vision-Language-Latent-Action generalist: VLM + MoE where a latent planner learns
+  from cross-embodiment/human data and an action expert learns from 1M+ real trajectories.
+- **Key idea**: Latent action tokens bridge image-text and low-level control; the latent planner
+  absorbs actionless heterogeneous data while the action expert specializes on AgiBot World teleop.
+- **Results**: +32% average success over prior SOTA (46% → 78%); the latent planner ablates as
+  the key contributor. Power-law scaling with trajectory count (r = 0.97).
+- **Relevance**: Good pretrained prior with full-stack tooling, but data/license are
+  non-commercial (CC BY-NC-SA 4.0) and AgiBot-hardware-centric.
+- **Links**: [arXiv 2503.06669](https://arxiv.org/abs/2503.06669) · [code](https://github.com/OpenDriveLab/AgiBot-World)
+
+### SpatialVLA (Shanghai AI Lab / IPEC, Jan 2025)
+- **TL;DR**: 4B PaliGemma2-based VLA with Ego3D position encoding and **adaptive action grids**
+  that re-discretize for each new robot — spatial structure as the transfer vehicle.
+- **Key idea**: Inject 3D context (depth-lifted ego coordinates) into visual tokens and
+  discretize actions on statistics-adaptive spatial grids; **adapting to a new robot re-fits the
+  grids to the target's action distribution** — a principled, very cheap cross-embodiment interface.
+- **Results**: Strong zero-shot SimplerEnv/WidowX results; superior spatial-prompt understanding
+  across 7 scenarios, 16 real tasks, 48 sim setups; inference in 8.5 GB; RSS 2025.
+- **Links**: [arXiv 2501.15830](https://arxiv.org/abs/2501.15830) · [code](https://github.com/SpatialVLA/SpatialVLA)
+
+### RoboVLM (ByteDance et al., Dec 2024)
+- **TL;DR**: A systematic design-space study ("what matters in building VLAs") plus a unified
+  codebase supporting 8 VLM backbones and arbitrary architecture combinations.
+- **Key finding relevant here**: it directly answers *"does cross-embodiment pretraining speed
+  up new-robot post-training?"* — **yes, mainly in low-data regimes.** Also finds policy-head
+  continuous actions beat interleaved discrete tokens in their setting. Nature Machine
+  Intelligence (2025).
+- **Relevance**: Use as an evidence base for design choices rather than as a checkpoint.
+- **Links**: [arXiv 2412.14058](https://arxiv.org/abs/2412.14058) · [project](https://robovlms.github.io/)
+
+### Other notable open releases (brief)
+- **MolmoAct / MolmoAct2 (Ai2, Aug 2025 / 2026)** — fully open (weights + code + data +
+  tokenizer) "Action Reasoning Models" reasoning in 3D: depth tokens → editable 2D visual traces
+  → actions. MolmoAct2 grafts a flow-matching expert onto the discrete-token VLM and reports
+  beating π0.5. Releases include a large open bimanual teleop dataset. Most *transparent*
+  full-stack release; 7B means LoRA-only on Spark.
+- **WALL-OSS / Wall-OSS-0.5 (X Square Robot, 2025/2026)** — ~4B Qwen2.5-VL-based, shared
+  attention with task-routed FFNs to mitigate VLM forgetting during action training.
+- **LingBot-VLA 2.0 (Ant Group, 2026)** — ~6B, one checkpoint reportedly driving 20+ robot
+  configurations across many brands; widest embodiment coverage in an open checkpoint. Apache-2.0.
+- **Xiaomi-Robotics-0/1 (2026)** — open cross-embodiment VLAs engineered for real-time execution
+  (async-execution training, ~80 ms latency).
+- ⚠️ The four entries above are 2026-era and least verified; treat numbers as provisional.
+
+## 4. Morphology-aware architectures & adaptation techniques ⏳
+
+*The mechanism layer: how do you actually make one network serve many bodies, and how do you
+move it to a new one cheaply?*
+
+### 4.1 Embodiment conditioning — four families
+
+| Family | Mechanism | Exemplars | New-robot cost |
+|---|---|---|---|
+| **Modular I/O** | per-embodiment stems/tokenizers + heads around a shared trunk | HPT, CrossFormer, Octo, GR00T (`EmbodimentTag` projectors) | train a new stem+head; trunk transfers |
+| **Conditioning token** | a learned embodiment ID/prompt conditions one monolithic net | X-VLA (soft prompts), embodiment-ID tokens | initialize a new prompt (tiny) + fine-tune |
+| **Unified action space** | every robot's action padded into fixed physically-meaningful slots | RDT-1B (128-dim), FAST tokens, delta-EEF convention | no new params; needs a mapping |
+| **Learned latent actions** | shared latent action codebook, per-robot decoder | UniAct, LAPA, UniVLA, GO-1 ViLLA | train a small decoder head only |
+
+**Verdict from the evidence**: modular stems (HPT) and soft prompts (X-VLA) have the strongest
+published results per parameter; latent-action codebooks (UniAct) have the *cheapest* adaptation
+step (decoder head only, extractor frozen). A monolithic model with no embodiment conditioning
+at all is the weakest option but the strongest baseline to beat.
+
+### 4.2 Action-space unification — the core design choice
+- **Delta end-effector (delta-EEF) + gripper**: what OXE-era models coerce everything to.
+  Maximizes transfer because EEF motions are near-embodiment-invariant — but it *hides*
+  morphology and breaks when arms lack IK reach parity. **The easy setting.**
+- **Joint space**: the honest hard setting — DoF mismatch requires padding/masking. RDT-1B's
+  128 fixed physically-interpretable slots is the reference scheme.
+- **FAST tokens (PI, 2025)**: DCT per action dimension → quantize → BPE; ~10× compression;
+  makes autoregressive VLAs work on high-frequency dexterous data where per-dim binning fails.
+- **Flow/diffusion heads**: continuous chunked actions, no tokenization loss — **the dominant
+  head type in 2026** (π0, RDT, GR00T, SmolVLA, X-VLA).
+- **For this project**: delta-EEF vs RDT-style padded joint-space is the cleanest ablation axis,
+  and the contrast is itself a defensible small-scale finding.
+
+### 4.3 Morphology encoding (mostly locomotion literature — a gap for manipulation)
+- **MetaMorph (Stanford, 2022)**: serialize the kinematic tree into per-limb tokens; one RL
+  policy across 100 UNIMAL robots; combinatorial generalization and fast transfer to unseen
+  variants. [arXiv 2203.11931](https://arxiv.org/abs/2203.11931)
+- **AnyMorph (Intel/Mila, 2022)**: transfers to unseen morphologies **without any morphology
+  description** — learns per-sensor/actuator embeddings from trajectory data. Attractive when
+  URDFs don't align cleanly. [arXiv 2206.12279](https://arxiv.org/abs/2206.12279)
+- **URMA — "One Policy to Run Them All" (TU Darmstadt, 2024)**: attention encoder over per-joint
+  observation sets + universal morphology decoder; one locomotion policy across quadrupeds,
+  humanoids, and a hexapod, transferring zero/few-shot to unseen robots in sim *and real*.
+  The strongest locomotion-side instantiation of this paradigm; trains on one workstation GPU.
+  [arXiv 2409.06366](https://arxiv.org/abs/2409.06366)
+- **Body Transformer (Berkeley, 2024)**: masked attention restricted to the robot's body graph —
+  each sensor/actuator node attends to itself and its neighbors. A drop-in structural inductive
+  bias. [arXiv 2408.06316](https://arxiv.org/abs/2408.06316)
+- **GET-Zero (Stanford, 2024)**: graph-attention conditioned on URDF connectivity enables
+  **zero-shot** control of modified hardware (removed joints, extended links), +20% on unseen
+  variants. [arXiv 2407.15002](https://arxiv.org/abs/2407.15002)
+- **Gap worth noting in a write-up**: URDF/graph morphology conditioning is well developed in
+  locomotion RL and largely *unexplored* in manipulation VLAs. That gap is a legitimate research
+  angle for this project.
+
+### 4.4 Visual embodiment bridging — transfer without touching the policy
+- **Mirage (Berkeley, RSS 2024)**: zero-shot transfer by **cross-painting** — mask the target
+  robot in the image and render the source robot at the same EEF pose via URDF, so the policy
+  only ever *sees* the robot it was trained on. No fine-tuning at all. Needs URDFs, camera
+  calibration, similar workspaces, two-jaw grippers. [arXiv 2402.19249](https://arxiv.org/abs/2402.19249)
+- **RoVi-Aug (Berkeley, CoRL 2024 oral)**: the *training-time* version — diffusion-based
+  augmentation repainting demos with different arms and viewpoints, so the policy is simply
+  trained to be embodiment/viewpoint invariant. Up to ~30% improvement when fine-tuning on target
+  data. [arXiv 2409.03403](https://arxiv.org/abs/2409.03403)
+- **Shadow (Stanford, CoRL 2024)**: replace the robot in *both* training and test images with a
+  composite segmentation-mask "shadow" of source+target — cheap, robust to calibration noise, no
+  generative model needed. **The simplest visual-bridging trick to implement in a MuJoCo
+  pipeline; negligible compute.** [arXiv 2503.00774](https://arxiv.org/abs/2503.00774)
+- **OXE-AugE (Berkeley AUTOLab, Dec 2025)**: RoVi-Aug at dataset scale — repaints OXE with 9
+  different arms/grippers, tripling it to 4.4M trajectories, improving performance on augmented
+  robots, on *unseen* robots, and on original robots under distribution shift. The sim analogue
+  (swap the arm model, regenerate the same task) is exactly this project.
+
+### 4.5 Fine-tuning practice — the 2026 standard recipe
+1. **LoRA on all linear layers** (OpenVLA official: rank 32, all-linear, no quantization —
+   matched full fine-tuning quality on one consumer GPU).
+2. **Always re-initialize the action head**, and the action expert if diffusion/flow.
+3. **Vision encoder**: freezing is common, but OpenVLA found *unfreezing* helps. Consensus 2026:
+   LoRA the VLM backbone, retrain the action head.
+4. **Adopt the OFT recipe** (parallel decoding, action chunking, continuous actions, L1 loss) —
+   backbone-agnostic, and it is what closed the LIBERO gap.
+5. ⚠️ **The single most common silent failure — normalization statistics.** OXE stats are
+   computed *per sub-dataset* (q01/q99 quantiles stored in checkpoint `norm_stats`); at inference
+   you must pass the matching `unnorm_key`. **For a new embodiment you must compute fresh stats
+   from your fine-tuning set** — reusing source-robot stats silently produces garbage actions.
+   Log the stats used in every eval run.
+
+### 4.6 "N demos to adapt to a new robot" — the field's datapoints
+
+The single most useful table in this document: **everything clusters at 50–300 demos** for a new
+arm on a known task family when starting from a strong generalist. That is the number this
+project should reproduce and try to beat, and the axis its curves should sweep.
+
+| Model / method | Demos for new robot | Setting | Notes |
+|---|---|---|---|
+| **Mirage** (Berkeley 2024) | **0** (zero-shot) | Franka↔UR5, gripper swaps | image cross-painting; needs calibration + URDF |
+| **RDT-1B** (2024) | 1–5 | new skills | few-shot skill acquisition |
+| **RoboTwin 2.0** (2025) | 10 real + synthetic pretrain | real bimanual | +367% relative over 10-demo-only |
+| **OpenVLA** (2024) | 10–150 per task | new tasks, incl. embodiments absent from pretraining | LoRA r=32 |
+| **GR00T N1** (NVIDIA 2025) | **30 / 100 / 300 per task** | RoboCasa, DexMimicGen, GR-1 | 45% avg at 100 demos vs 33.4% Diffusion Policy |
+| **Octo** (Berkeley 2024) | **~100** | new embodiments, new obs/action spaces | <5 h on one consumer GPU; +52% over next baseline |
+| **Gemini Robotics** (2025) | ~100 | new short-horizon tasks | — |
+| **Gemini On-Device** (2025) | **50–100** | new tasks; ALOHA→Franka→Apollo | first DeepMind fine-tunable VLA |
+| **Gemini On-Device 2** (2026) | **<200, a few hours** | whole new bi-arm platform | SO-101 6.7% → 53.3% |
+| **RoboCat** (DeepMind 2023) | **100–1,000** | new tasks *and* unseen embodiments | + self-improvement loop |
+| **π0 / openpi** (PI 2024–25) | **1–20 hours of data** | new tasks/platforms | ≈ low-hundreds to few-thousand episodes |
 
 ## 4. Morphology-aware architectures & adaptation techniques
 
