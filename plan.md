@@ -43,8 +43,8 @@ efficiency is a property of the pre-trained prior, not the fine-tuning procedure
 
 | Decision | Choice |
 |---|---|
-| Simulator | **robosuite 1.5 + MimicGen + robomimic** (MuJoCo — robot-agnostic tasks, aarch64-native) |
-| Scale-up option | ManiSkill3 for GPU-parallel eval — *gated on verifying SAPIEN aarch64 wheels on the Spark* |
+| Simulator | **robosuite 1.5.2 + MimicGen + robomimic** (MuJoCo) — ✅ verified on the Spark, 36/36 task×arm combos run |
+| Scale-up option | ❌ ManiSkill3 ruled out — no aarch64 wheels for SAPIEN or mplib. Fallback if rollouts bottleneck: **MuJoCo Playground / MJX** (JAX, aarch64-native) |
 | Training arms | Panda, Sawyer, IIWA, Kinova Gen3 (same gripper class) |
 | Held-out (near) | UR5e — "interpolation" |
 | Held-out (far) | SO-101 via MuJoCo Menagerie — "extrapolation", 5-DoF |

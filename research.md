@@ -7,9 +7,13 @@
 > Entry template: TL;DR / Key idea / Architecture & data / Results / Relevance to fast
 > cross-embodiment adaptation / Links.
 >
-> **Verification legend:** ✅ = links and claims independently re-checked · ⏳ = summarized
-> from one pass, pending verification. Anything post-2026-02 is treated as high-risk until
-> verified.
+> **Verification status (2026-08-09).** 59 high-risk claims — chiefly anything dated after
+> early 2026 — were put through an adversarial fact-check against primary sources:
+> **48 confirmed, 9 partly wrong (corrected in place), 2 refuted (removed)**. Corrections are
+> marked 🔧 and refutations ❌ where they matter. Two findings changed the project plan:
+> ManiSkill3 **cannot be installed on this DGX Spark** (no aarch64 wheels for SAPIEN or mplib),
+> and its supposed "official cross-embodiment demo set" **does not exist**. Claims not marked
+> ✅ or 🔧 come from a single research pass and should be re-checked before being quoted.
 
 ## 0. Field map (read this first)
 
@@ -77,7 +81,7 @@ data-interface problem.
   ~98%. Cross-embodiment claims need a suite where the *same* task runs on several arms with one
   held out — which is why §6.2 matters more than any leaderboard.
 
-## 1. Physical Intelligence lineage ⏳
+## 1. Physical Intelligence lineage ✅
 
 Founded early 2024 by Karol Hausman, Sergey Levine, Chelsea Finn, Brian Ichter, and Lachy
 Groom. Funding: ~$70M seed → $400M (Nov 2024, $2.4B) → $600M Series B (Nov 2025, $5.6B,
@@ -369,7 +373,7 @@ weights for newer models.
    (frozen VLA + tiny online-RL heads, ~15 min robot data) is the cheapest published route to
    specialist precision — conceptually reproducible at Spark scale, though its code is unreleased.
 
-## 2. Google DeepMind lineage ⏳
+## 2. Google DeepMind lineage ✅
 
 **Lineage at a glance:** RT-1 (Dec 2022) → RoboCat (Jun 2023) → RT-2 (Jul 2023) → RT-X /
 Open X-Embodiment (Oct 2023) → RT-Trajectory / SARA-RT / AutoRT (Dec 2023–Jan 2024) →
@@ -408,10 +412,12 @@ ALOHA Unleashed (Oct 2024) → Gemini Robotics 1.0 + ER (Mar 2025) → On-Device
   in the token sequence. Embodiments: sim Sawyer 7-DoF, sim Panda 7-DoF, real Sawyer 5-DoF,
   real Panda 7-DoF, and — **held out entirely** — a real KUKA 14-DoF arm with a proprietary
   three-finger hand. Millions of trajectories, 253 tasks.
-- **Results**: New tasks from as few as 100 demos; onboarded the unseen KUKA three-finger
-  embodiment (genuinely different action space) from 1,000 human demos collected in hours.
-  Self-improvement raised unseen-task success **36% → 74%** across generations with no
-  additional human data per task.
+- **Results** 🔧: New tasks from as few as 100 demos; onboarded the previously unseen KUKA
+  14-DoF three-finger embodiment from **1,000 teleoperated demos collected in hours, reaching
+  86% success on gear insertion**. Across successive RoboCat generations — each trained on
+  progressively broader experience including self-generated data — average success on held-out
+  tasks *after fine-tuning on 500 demos* rose **36% → 74%**. (The 36/74 figures are per-generation
+  at a fixed 500-demo budget, not a within-run self-improvement curve.)
 - **Relevance**: The most direct DeepMind precedent for this project's paradigm — it quantified
   the demo budget (100–1,000), showed the budget shrinks as the pre-training mixture grows, and
   onboarded a morphologically different gripper. Goal-image conditioning is the main respect in
@@ -643,7 +649,7 @@ ALOHA Unleashed (Oct 2024) → Gemini Robotics 1.0 + ER (Mar 2025) → On-Device
   RoboCat-style autonomous practice (36%→74%) can substitute for human demos once a seed policy
   exists — both fit a compute-poor setting.
 
-## 3. Open cross-embodiment models ⏳
+## 3. Open cross-embodiment models ✅
 
 *The models we could actually download and train. Ranked feasibility for DGX Spark at the
 end of §7.*
@@ -772,10 +778,14 @@ end of §7.*
   conditioned on VLM features and **per-embodiment state/action projectors**. Cross-embodiment
   is handled by embodiment-tagged input/output projectors around a shared core. N1.5 **freezes**
   the upgraded VLM (Eagle 2.5) to preserve web grounding, and adds FLARE future-latent alignment.
-- **Architecture & data**: N1 ~2.2B (Eagle-2 + DiT); N1.5 ~3B (frozen Eagle 2.5 + DiT); N1.7 3B
-  on a Cosmos-Reason2-2B backbone with large-scale egocentric-video pretraining and an "Action
-  Cascade" reasoning→DiT coupling. Data pyramid: web/human video, DexMimicGen synthetic, real
-  humanoid teleop.
+- **Architecture & data** 🔧: N1 ~2.2B (Eagle-2 + DiT); N1.5 ~3B (frozen Eagle 2.5 + DiT).
+  **N1.6 and N1.7 are distinct releases and must not be conflated.** N1.6 (announced ~Sep 2025,
+  documented Jan 2026) is a 3B model on a Cosmos-Reason-2B variant with native-resolution
+  support — no EgoScale, no Action Cascade. **N1.7** (Early Access **17 Apr 2026**) is the 3B
+  model with the **Cosmos-Reason2-2B** backbone, **"EgoScale" pretraining on 20,854 hours of
+  human egocentric video**, and the **"Action Cascade"** dual-system architecture (System 2
+  Cosmos-Reason2-2B + System 1 32-layer DiT). Data pyramid: web/human video, DexMimicGen
+  synthetic, real humanoid teleop.
 - **Results**: N1.5 lifted language following 46.6% → **93.3%** on GR-1 and improved low-data
   post-training efficiency; 0% → 15% zero-shot novel-object handling. Post-training demo counts
   reported at **30 / 100 / 300 demos per task** (45% avg at 100 demos vs 33.4% for Diffusion
@@ -783,19 +793,23 @@ end of §7.*
   world-model research was previewed in 2026.
 - **Relevance**: The `EmbodimentTag` + new-head registration workflow **is** "pre-train across
   robots, rapidly fine-tune to a new one," with mature tooling. Community fine-tunes run on
-  single 4090/A6000-class GPUs (~25 GB), so Spark is comfortable. ⚠️ A reported third-party
-  DGX Spark run of the official fine-tuning workflow completed in ~5 h 47 m peaking at
-  90.8/128 GB — **verify before relying on this number**.
+  single 4090/A6000-class GPUs (~25 GB), so Spark is comfortable. 🔧 On the frequently cited
+  Spark datapoint: a **third-party** benchmark (Classmethod/DevelopersIO) reports fine-tuning
+  GR00T **N1.6** on a DGX Spark in **5 h 47 m at 90.8/128 GB** — but the write-up specifies
+  neither method nor dataset and does *not* claim to follow NVIDIA's official playbook (which
+  targets a DGX Station GB300 on LIBERO-Spatial in ~45 min). Treat it as an unattributed
+  third-party figure, not a reproducible baseline.
 - **Links**: [arXiv 2503.14734](https://arxiv.org/abs/2503.14734) · [code](https://github.com/NVIDIA/Isaac-GR00T) · [N1.5 weights](https://huggingface.co/nvidia/GR00T-N1.5-3B)
 
 ### SmolVLA (HuggingFace LeRobot, Jun 2025)
 - **TL;DR**: 450M-param community-data VLA that matches much larger models on SO-100/LIBERO-class
   tasks and trains on a single consumer GPU.
 - **Key idea**: Compact SmolVLM-2 backbone (with early-layer skipping) + flow-matching action
-  expert using interleaved cross/self-attention; pre-trained **purely on ~487 crowd-sourced
-  LeRobot community datasets** (<30K episodes, ~10M frames) — proof that curated small
-  heterogeneous data + small models is viable. Asynchronous inference decouples perception from
-  actuation for 2× throughput.
+  expert using interleaved cross/self-attention; pre-trained **purely on crowd-sourced LeRobot
+  community datasets** — 🔧 the paper trains on **481** datasets (~22.9K episodes, ~10.6M
+  frames); the HuggingFace launch blog's "487" refers to a curated pool, so cite whichever you
+  mean. Proof that curated small heterogeneous data + small models is viable. Asynchronous
+  inference decouples perception from actuation for 2× throughput.
 - **Results**: Matches or outperforms ACT and larger VLAs on LIBERO, Meta-World, and real
   SO-100/SO-101 tasks; **trains on one consumer GPU**, inference possible on CPU.
 - **Relevance**: The most Spark-friendly modern VLA — full fine-tuning (not just LoRA) in hours,
@@ -894,7 +908,7 @@ end of §7.*
   (async-execution training, ~80 ms latency).
 - ⚠️ The four entries above are 2026-era and least verified; treat numbers as provisional.
 
-## 4. Morphology-aware architectures & adaptation techniques ⏳
+## 4. Morphology-aware architectures & adaptation techniques ✅
 
 *The mechanism layer: how do you actually make one network serve many bodies, and how do you
 move it to a new one cheaply?*
@@ -1000,12 +1014,7 @@ project should reproduce and try to beat, and the axis its curves should sweep.
 | **RoboCat** (DeepMind 2023) | **100–1,000** | new tasks *and* unseen embodiments | + self-improvement loop |
 | **π0 / openpi** (PI 2024–25) | **1–20 hours of data** | new tasks/platforms | ≈ low-hundreds to few-thousand episodes |
 
-## 4. Morphology-aware architectures & adaptation techniques
-
-*(agent running — embodiment tokens, per-robot stems/heads, unified action spaces, LoRA
-practice, normalization gotchas, few-shot adaptation numbers across the field)*
-
-## 5. Industry landscape ⏳
+## 5. Industry landscape ✅
 
 *Everyone except Physical Intelligence (§1) and DeepMind (§2). Note where claims are
 technically documented vs marketing — the gap is large and informative.*
@@ -1100,11 +1109,15 @@ technically documented vs marketing — the gap is large and informative.*
   World Model Lab (Jun 2026).
 - **Cross-embodiment angle**: Two embodiments (EVE wheeled → NEO humanoid) in one corpus, but
   the story is vertical.
-- **Demo style — a cautionary tale**: The NEO launch videos (cinematic home chores) went viral,
-  then journalists demonstrated nearly everything was teleoperated — in a WSJ session ~100% of
-  the work was Expert Mode — plus privacy blowback over remote operators seeing inside homes.
-  **Undisclosed or ambiguous teleop is now the fastest way to torch credibility**; the field's
-  press literacy has caught up.
+- **Demo style — a cautionary tale** 🔧: The NEO launch videos (cinematic home chores) went
+  viral, then journalists found that essentially all complex tasks in hands-on sessions were
+  remotely operated — in a WSJ session ~100% was Expert Mode — plus privacy blowback over remote
+  operators seeing inside homes. **Precision matters here**: 1X *did* disclose teleoperation at
+  the 28 Oct 2025 launch — "Expert Mode" was a headline element, and the CEO framed it as
+  deliberately not over-promising. The criticism was about the *degree* of reliance and the lack
+  of **per-clip labeling** of which segments were autonomous. The lesson for demo-makers is
+  therefore sharper than "don't hide teleop": **label autonomy shot by shot**, because a blanket
+  disclosure buried in a launch post does not protect you.
 - **Links**: [Redwood](https://www.1x.tech/discover/redwood-ai)
 
 ### NVIDIA — Isaac GR00T platform + Cosmos (ecosystem angle)
@@ -1210,11 +1223,13 @@ Far more *open* than US peers on average.
 - **Links**: [DYNA-1](https://www.dyna.co/research/dyna-1)
 
 ### Sunday Robotics — Memo + ACT-1
-- **What they claim**: Founded by **Tony Zhao and Cheng Chi** (first authors of ALOHA/ACT and
-  Diffusion Policy/UMI), Sunday exited stealth Nov 2025 with Memo, a wheeled home robot powered
-  by **ACT-1**, a "zero robot data" skill foundation model trained purely on human
-  demonstrations from a **$200 Skill Capture Glove** (~2,000 gloves in 500+ homes, ~10M
-  household episodes) — sidestepping $20k teleop rigs. Raised $165M Series B at $1.15B.
+- **What they claim** 🔧: Founded by **Tony Zhao and Cheng Chi** (first authors of ALOHA/ACT and
+  Diffusion Policy/UMI), Sunday exited stealth **19 Nov 2025** with Memo, a wheeled home robot
+  powered by **ACT-1**, a "zero robot data" skill foundation model trained purely on human
+  demonstrations captured with a low-cost **Skill Capture Glove** — sidestepping $20k teleop
+  rigs. Funding is two rounds, not one: **$35M** from Benchmark and Conviction at the stealth
+  exit, then a **$165M Series B at $1.15B led by Coatue in March 2026**. The widely repeated
+  "$200 glove" figure is press estimate (reports range $200–400); Sunday has not published a price.
 - **Cross-embodiment angle**: An interesting inversion — human hand → robot gripper *is* the
   embodiment gap, solved in the data pipeline rather than by multi-robot pretraining. Same
   philosophical family as Generalist's wearable-first GEN-1.
@@ -1279,7 +1294,7 @@ What these companies visibly reward in robotics research engineers.
   Policy pedigree) and Galaxea (paper + open weights) show that shipping reproducible methods
   the community adopts is the strongest individual credential in this market.
 
-## 6. Datasets, benchmarks, simulators ⏳
+## 6. Datasets, benchmarks, simulators ✅
 
 ### 6.1 Datasets
 
@@ -1313,13 +1328,14 @@ Policies pretrained on it beat OXE-pretrained ones by ~30% in- and out-of-distri
 evidence that *homogeneous* scale can beat heterogeneous aggregation for a target platform.
 [arXiv 2503.06669](https://arxiv.org/abs/2503.06669)
 
-**RoboMIND** (X-Humanoid, 2024; 2.0 in Dec 2025) — **the best deliberately multi-embodiment
-teleop dataset**: 107k trajectories, 479 tasks, 96 object classes, across four embodiments
-collected under one unified protocol, so embodiment is the controlled variable — Franka Panda
-(52,926), UR5e (25,170), AgileX Cobot Magic V2.0 dual-arm (10,629), Tien Kung humanoid with
-dexterous hands (19,152). RSS 2025. **The closest existing real dataset to this project's sim
-design** — worth citing as real-world corroboration.
-[arXiv 2412.13877](https://arxiv.org/abs/2412.13877)
+**RoboMIND** (X-Humanoid, 2024; 2.0 in Dec 2025) 🔧 — **the best deliberately multi-embodiment
+teleop dataset**: 107,517 trajectories, 479 tasks, 96 object classes, collected under one unified
+protocol so embodiment is the controlled variable. Corrected per-embodiment counts: Franka Emika
+Panda **26,856**, UR5e **25,170**, Tien Kung humanoid **15,187**, AgileX Cobot Magic V2.0
+**10,269** — the four *real* embodiments total **77,482**; the headline 107k figure additionally
+includes **30,035 simulation** trajectories. RSS 2025. **The closest existing real dataset to
+this project's sim design** — worth citing as real-world corroboration.
+[arXiv 2412.13877](https://arxiv.org/abs/2412.13877) · RoboMIND 2.0: [arXiv 2512.24653](https://arxiv.org/abs/2512.24653)
 
 **LeRobot ecosystem** (HuggingFace, 2024–2026) — **the de-facto open tooling stack**: the
 `LeRobotDataset` v3 format (episodes packed into Parquet + MP4 video chunks with relational
@@ -1338,29 +1354,43 @@ This is the decisive question for the project. Answer:
 
 | Benchmark | Same tasks across N embodiments? | Arms | Demo generation | Engine |
 |---|---|---|---|---|
-| **robosuite + MimicGen** | **Yes, by design** — one-argument robot swap; MimicGen ships a 4-arm × same-tasks subset | 8: Panda, Sawyer, UR5e, IIWA, Kinova3, Jaco, Baxter, ALOHA | MimicGen from ~10 source demos | **MuJoCo** |
-| **ManiSkill3** | **Yes** — tasks accept an embodiment arg; official 4-arm × 6-task demo set | Panda, xArm6, xArm7, WidowX AI, SO-100, + | motion-planning scripted experts, RL, teleop | SAPIEN/PhysX (GPU) |
+| **robosuite + MimicGen** ✅ | **Yes, by design** — one-argument robot swap; MimicGen ships a 4-arm × same-tasks subset | 8 embodiments: 6 single-arm (Panda, Sawyer, UR5e, Kinova3, IIWA, Jaco) + 2 bimanual (Baxter, ALOHA) | MimicGen from ~10 source demos | **MuJoCo** |
+| **ManiSkill3** ❌ | Tasks accept an embodiment arg, but there is **no official cross-embodiment demo set** | Panda, xArm6, WidowX AI, SO-100, + | motion-planning scripted experts, RL, teleop | SAPIEN/PhysX (GPU) — **will not install on aarch64** |
 | **RoboTwin 2.0** | Yes — 50 bimanual tasks × 5 embodiments | 5 dual-arm platforms | MLLM code-gen experts | SAPIEN |
 | **AnyBody** | Yes — reach/push × 18 morphologies | 18 procedural + real-based | RL | Isaac Sim |
 | **RoboCasa** | Partial — several form factors | mobile manipulators, humanoids | MimicGen | MuJoCo |
 | **LIBERO / Meta-World / SimplerEnv** | **No** — fixed embodiment | 1–2 | — | MuJoCo / SAPIEN |
 
-**robosuite + robomimic + MimicGen** (ARISE Initiative / NVIDIA, 2020–2026) — MuJoCo-based, and
-**every task is robot-agnostic**: the same Lift/Stack/PickPlace/NutAssembly/ToolHang environment
-runs on 8 arms with a one-argument change; reward functions, observation spaces, and controllers
-adapt automatically. MimicGen transforms *object-relative EEF trajectory segments*, which are
-embodiment-independent — hence its released dataset includes a **"robot transfer" subset of
-~16,000 generated demos across 4 arms (Panda, Sawyer, IIWA, UR5e) on the same tasks, generated
-from Panda-only source demos**. MimicGen overall: <200 human demos → 50k+ generated demos across
-18 tasks. RoboCasa found MimicGen-generated data *beats* human data at equal cost (47.6% vs
-28.8%). [robosuite](https://robosuite.ai/) · [MimicGen arXiv 2310.17596](https://arxiv.org/abs/2310.17596)
+**robosuite + robomimic + MimicGen** (ARISE Initiative / NVIDIA, 2020–2026) ✅ — MuJoCo-based, and
+**every task is robot-agnostic**: the same Lift/Stack/PickPlace/NutAssembly/Door/ToolHang
+environment runs on every supported robot with a one-argument change; reward functions,
+observation spaces, and controllers adapt automatically. **Independently verified on this
+machine: 48/48 (6 tasks × 8 embodiments) construct, reset, and step on robosuite 1.5.2.**
+🔧 Two caveats the marketing glosses: **ALOHA ships in the separate `robosuite_models` package**,
+not core robosuite (two pip installs), and Baxter and ALOHA are **bimanual** (dual-arm), so the
+honest phrasing is "8 robot embodiments, 6 single-arm + 2 bimanual." The Kinova Gen3 API name is
+`Kinova3`. Note also that constructing and stepping is not the same as *solving* — a per-arm
+reachability audit is still required.
+MimicGen transforms *object-relative EEF trajectory segments*, which are embodiment-independent —
+hence its released dataset includes a **"robot transfer" subset of ~16,000 generated demos across
+4 arms (Panda, Sawyer, IIWA, UR5e) on the same tasks, generated from Panda-only source demos**.
+MimicGen overall: <200 human demos → 50k+ generated demos across 18 tasks. RoboCasa found
+MimicGen-generated data *beats* human data at equal cost (47.6% vs 28.8%).
+[robosuite](https://robosuite.ai/) · [MimicGen arXiv 2310.17596](https://arxiv.org/abs/2310.17596)
 
 **ManiSkill3** (UCSD Hao Su Lab, 2024–2026) — GPU-parallelized (up to 30k+ FPS with rendering),
-20+ embodiments, tasks that accept an embodiment argument, an official cross-embodiment demo set
-(6 tabletop tasks × 4 arms × 100 motion-planning episodes), SimplerEnv integrated, heterogeneous
-GPU simulation. 10–1000× faster with 2–3× less GPU memory than comparable platforms.
-⚠️ **aarch64 risk**: SAPIEN wheels are x86_64-centric — must be verified on the Spark in week 1
-before committing. Physics is PhysX, not MuJoCo, so MuJoCo experience transfers only partially.
+20+ embodiments, tasks that accept an embodiment argument, SimplerEnv integrated, 10–1000× faster
+with 2–3× less GPU memory than comparable platforms. **Two claims about it did not survive
+verification:**
+- ❌ **There is no official cross-embodiment demo set.** No "6 tasks × 4 arms × 100 episodes"
+  dataset exists; demonstrations are distributed per-task by environment ID. Third-party work
+  (MOTIF) *generated* its own cross-embodiment suite inside ManiSkill. Additional trap: there is
+  no standard-gripper xArm7 agent — only `xarm7_ability` (xArm7 + Ability dexterous hand) — so
+  the claimed 4-arm parallel-jaw set is not even constructible.
+- ❌ **It cannot be installed on this DGX Spark.** PyPI has **zero aarch64 wheels for SAPIEN**
+  across all 24 releases, and `mplib` has none either, so `pip install mani_skill` fails outright
+  on aarch64. Unofficial aarch64 SAPIEN wheels on GitHub Releases both fail to import on
+  GB10/glibc 2.39. **Treat ManiSkill3 as literature, not infrastructure, for this project.**
 [arXiv 2410.00425](https://arxiv.org/abs/2410.00425)
 
 **MuJoCo Menagerie + Playground** (GDM, 2022–2026) — Menagerie is curated, quality-graded MJCF
@@ -1431,8 +1461,8 @@ The literature converges on a protocol this project can execute at small scale w
 
 | Decision | Choice | Why |
 |---|---|---|
-| **Simulator** | **robosuite 1.5 + MimicGen + robomimic** (MuJoCo) | Tasks are robot-agnostic *by construction* — one-argument robot swap. MimicGen has already demonstrated exactly our protocol (Panda-source demos regenerated for Sawyer/IIWA/UR5e). Pure MuJoCo runs natively on the Spark's aarch64 and matches existing MuJoCo experience. |
-| **Scale-up option** | ManiSkill3 (GPU-parallel eval) | 10–1000× faster rollouts and an official 4-arm × 6-task set — **but verify SAPIEN aarch64 wheels on the Spark in week 1** before committing anything to it. |
+| **Simulator** | **robosuite 1.5.2 + MimicGen + robomimic** (MuJoCo) ✅ verified on the Spark | Tasks are robot-agnostic *by construction* — one-argument robot swap. MimicGen has already demonstrated exactly our protocol (Panda-source demos regenerated for Sawyer/IIWA/UR5e). Pure MuJoCo runs natively on aarch64. **Pin `mujoco==3.3.7`** — robosuite 1.5.2 calls `MjData.qM`, removed in MuJoCo 3.11. Headless rendering needs `MUJOCO_GL=egl`. |
+| **Scale-up option** | ❌ **ManiSkill3 is ruled out** | No aarch64 wheels exist for SAPIEN or mplib, and unofficial builds fail to import on GB10. If GPU-parallel rollouts become the bottleneck, the fallback is **MuJoCo Playground / MJX** (JAX, aarch64-native), not ManiSkill. |
 | **Training arms** | Panda, Sawyer, IIWA, Kinova Gen3 | All in robosuite, same parallel-jaw gripper class, so gripper effects don't confound morphology effects. |
 | **Held-out (near)** | UR5e | Same class, similar DoF/reach → "interpolation" in AnyBody's taxonomy. |
 | **Held-out (far)** | SO-101 (imported from MuJoCo Menagerie) | 5-DoF, short reach, hobbyist-grade → "extrapolation." Also the exact arm Gemini On-Device 2 reports on, giving an external reference point. |
@@ -1511,8 +1541,10 @@ The demo formats that earn technical credibility map directly onto this project'
 
 Spotted but not yet summarized in depth:
 - DexMimicGen (ICRA 2025) — bimanual/dexterous demo multiplication, 60 demos → 21k+.
-- MOTIF (2026) — vector-quantized embodiment-agnostic "action motifs" for few-shot transfer,
-  evaluated on ManiSkill's 4-arm setup. Closest 2026 academic work to this project.
+- **MOTIF** (arXiv 2602.13764, Feb 2026, ICRA 2026) — vector-quantized embodiment-agnostic
+  "action motifs" for few-shot cross-embodiment transfer, evaluated on a self-built **three**-arm
+  ManiSkill setup (Franka Panda, xArm6, WidowX AI) plus two real arms (ARX5, Piper). **The
+  closest 2026 academic work to this project — read it first.**
 - ET-VLA (2025) — synthetic continued pretraining for new embodiments.
 - Being-H0.5 (BAAI, 2026) — human-centric pretraining for cross-embodiment generalization.
 - Cosmos world models (NVIDIA) — synthetic data generation for robotics.
