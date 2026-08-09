@@ -9,7 +9,7 @@ This is the central bet of Physical Intelligence (π0.5, π0.7), Google DeepMind
 phenomenon — positive transfer across embodiments plus fast adaptation — at a scale that fits a
 single DGX Spark, and adds a measurement the large labs cannot easily make.
 
-- **[plan.md](plan.md)** — paradigm, locked stack, roadmap M0–M8, demo specification
+- **[plan.md](plan.md)** — paradigm, proposed stack, roadmap M0–M8, demo specification
 - **[research.md](research.md)** — living survey of generalist-robotics research (~1,500 lines)
 - **[coding_rule.md](coding_rule.md)** — repo conventions
 - **[progress/](progress/)** — daily logs
@@ -78,7 +78,7 @@ MuJoCo 3.11.
 
 ```bash
 python tools/build_research_page.py        # regenerate after editing research.md
-python -m http.server 8765 --bind 127.0.0.1
+python tools/serve.py --host 127.0.0.1
 # open http://127.0.0.1:8765/research_page.html
 ```
 
@@ -86,14 +86,14 @@ python -m http.server 8765 --bind 127.0.0.1
 Spark), bind to the Tailscale address instead of loopback:
 
 ```bash
-python -m http.server 8765 --bind "$(tailscale ip -4)"
+python tools/serve.py          # binds to the tailnet address by default
 # then browse to http://spark-ddbc:8765/research_page.html
 ```
 
 That keeps the page on the private tailnet rather than exposing it to the LAN or the internet.
 
-Stop the server with `pkill -f "[h]ttp\.server 8765"` — the bracket keeps the pattern from
-matching (and killing) the shell running the command. GitHub also renders
+Stop it with Ctrl-C, or from another shell `pkill -f "[t]ools/serve.py"` — the bracket keeps the
+pattern from matching (and killing) the shell running the command. GitHub also renders
 [research.md](research.md) directly, tables and all.
 
 ## Hardware
