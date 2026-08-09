@@ -308,10 +308,279 @@ weights for newer models.
    (frozen VLA + tiny online-RL heads, ~15 min robot data) is the cheapest published route to
    specialist precision — conceptually reproducible at Spark scale, though its code is unreleased.
 
-## 2. Google DeepMind lineage
+## 2. Google DeepMind lineage ⏳
 
-*(agent running — RT-1 → RT-2 → RT-X / Open X-Embodiment → RoboCat → ALOHA Unleashed →
-Gemini Robotics 1.0 / On-Device / 1.5 + Motion Transfer)*
+**Lineage at a glance:** RT-1 (Dec 2022) → RoboCat (Jun 2023) → RT-2 (Jul 2023) → RT-X /
+Open X-Embodiment (Oct 2023) → RT-Trajectory / SARA-RT / AutoRT (Dec 2023–Jan 2024) →
+ALOHA Unleashed (Oct 2024) → Gemini Robotics 1.0 + ER (Mar 2025) → On-Device + SDK
+(Jun 2025) → Gemini Robotics 1.5 + ER 1.5 / **Motion Transfer** (Sep 2025) → ER 1.6
+(Apr 2026) → **Gemini Robotics 2 family** (Jul 2026). Note RoboCat precedes RT-2.
+
+### RT-1: Robotics Transformer (Google Research, Dec 2022)
+- **TL;DR**: First demonstration that one transformer trained on large-scale multi-task real
+  robot data yields a generalizing "robotics foundation model" — and can absorb data from a
+  *different* robot.
+- **Key idea**: Collect a massive multi-task teleop dataset on a fleet of identical robots and
+  train one language-conditioned transformer over it. Capacity + data diversity, not
+  algorithmic novelty, drives generalization.
+- **Architecture & data**: ImageNet-pretrained EfficientNet-B3, language via FiLM, TokenLearner
+  token compression, decoder-only Transformer (~35M) emitting discretized actions (11 dims:
+  7 arm, 3 base, 1 mode-switch) at 3 Hz. 130k+ episodes, 700+ instructions, from 13 Everyday
+  Robots mobile manipulators over 17 months.
+- **Results**: 97% on seen instructions (+25% over BC-Z, +32% over Gato); 76% on unseen
+  instructions; 83% under distractors, 59% under new backgrounds. **Cross-robot absorption:
+  mixing Kuka bin-picking data nearly doubled bin-picking success on Everyday Robots from
+  22% → 39% with no loss on original tasks.**
+- **Relevance**: The seed of the paradigm — first concrete evidence that heterogeneous robot
+  data is an asset, not a contaminant.
+- **Links**: [arXiv 2212.06817](https://arxiv.org/abs/2212.06817) · [project](https://robotics-transformer1.github.io/)
+
+### RoboCat (Google DeepMind, Jun 2023)
+- **TL;DR**: A self-improving, multi-embodiment goal-conditioned agent that adapts to new tasks
+  and **new robot arms** from 100–1,000 demonstrations, then generates its own training data.
+- **Key idea**: One decision transformer trained across many arms, action spaces, and control
+  modes, with tasks specified by *goal images*. After fine-tuning to a new task/embodiment it
+  practices autonomously (~10,000 rollouts/task) and the self-generated data folds back into
+  the next generalist round — a flywheel where each generation adapts faster.
+- **Architecture & data**: Gato-style autoregressive decision transformer (1.18B) with a frozen
+  VQ-GAN image tokenizer; per-embodiment proprioception/action dimensionality handled natively
+  in the token sequence. Embodiments: sim Sawyer 7-DoF, sim Panda 7-DoF, real Sawyer 5-DoF,
+  real Panda 7-DoF, and — **held out entirely** — a real KUKA 14-DoF arm with a proprietary
+  three-finger hand. Millions of trajectories, 253 tasks.
+- **Results**: New tasks from as few as 100 demos; onboarded the unseen KUKA three-finger
+  embodiment (genuinely different action space) from 1,000 human demos collected in hours.
+  Self-improvement raised unseen-task success **36% → 74%** across generations with no
+  additional human data per task.
+- **Relevance**: The most direct DeepMind precedent for this project's paradigm — it quantified
+  the demo budget (100–1,000), showed the budget shrinks as the pre-training mixture grows, and
+  onboarded a morphologically different gripper. Goal-image conditioning is the main respect in
+  which it was superseded (by language).
+- **Links**: [arXiv 2306.11706](https://arxiv.org/abs/2306.11706) · [blog](https://deepmind.google/discover/blog/robocat-a-self-improving-robotic-agent/)
+
+### RT-2: Vision-Language-Action Models (Google DeepMind, Jul 2023)
+- **TL;DR**: Coined the VLA recipe — cast robot actions as text tokens inside a pretrained VLM
+  so web-scale knowledge transfers directly into control.
+- **Key idea**: Take a large VLM (PaLI-X or PaLM-E), express discretized actions as text token
+  strings, and *co-fine-tune* on robot trajectories mixed with the original web-scale
+  vision-language data. The robot inherits semantic generalization never present in robot data.
+- **Architecture & data**: PaLI-X (55B, also 5B) and PaLM-E (12B), fine-tuned on the RT-1 robot
+  dataset co-mixed with internet VQA/captioning; actions as text-token bins, executed closed-loop.
+- **Results**: ~6,000 real trials; roughly **2× generalization improvement** over RT-1 on unseen
+  conditions (≈62% vs ≈32%). Emergent: "pick the smallest object", "move the banana to 2+1",
+  improvised-tool reasoning ("pick the rock as a hammer") via chain-of-thought.
+- **Relevance**: Established that most of a policy's "understanding" can come from non-robot
+  data — which is *why* later models can afford tiny per-embodiment datasets: the
+  embodiment-specific fine-tune only teaches motor grounding, not perception or semantics.
+- **Links**: [arXiv 2307.15818](https://arxiv.org/abs/2307.15818) · [project](https://robotics-transformer2.github.io/)
+
+### RT-X / Open X-Embodiment (GDM + 21→34 institutions, Oct 2023)
+- **TL;DR**: The field-defining demonstration that pooling data from 22 robots into one policy
+  produces **positive transfer** — the shared model beats each lab's own specialist on that
+  lab's own robot.
+- **Key idea**: Standardize 60 heterogeneous datasets into a common format (RLDS: images +
+  language + end-effector actions) and train existing architectures on the union. If one
+  "X-robot" policy beats per-robot policies, robotics can consolidate around pretrained
+  generalist backbones the way NLP/vision did.
+- **Architecture & data**: OXE dataset — 1M+ real trajectories, **22 embodiments** (single arm,
+  bimanual, quadruped), 60 datasets, 527 skills / 160,266 tasks. Models: RT-1-X (35M) and
+  RT-2-X (55B) trained on the pooled mixture with a coarsely unified end-effector action space,
+  **no per-robot heads**.
+- **Results**: RT-1-X beat each lab's specialist by **+50% mean success** across six academic
+  labs in the small-data regime. RT-2-X showed **3× improvement on emergent-skill evaluations** —
+  skills present only in *other* robots' data (e.g. spatial prepositions "on" vs "near")
+  transferred to the evaluation platform. Dataset + RT-1-X checkpoint released openly; OXE
+  became the substrate for the entire open VLA ecosystem.
+- **Relevance**: The foundational empirical result for this project — cross-embodiment data is
+  synergistic, and the gains are largest exactly where you have least data. OXE is public and
+  directly inheritable.
+- **Links**: [arXiv 2310.08864](https://arxiv.org/abs/2310.08864) · [project + dataset](https://robotics-transformer-x.github.io/)
+
+### RT-Trajectory, SARA-RT, AutoRT (Google DeepMind, Dec 2023 – Jan 2024)
+- **TL;DR**: Trajectory-sketch conditioning for task generalization, linear-attention
+  up-training for faster VLAs, and LLM/VLM-orchestrated fleet data collection.
+- **Key idea**: RT-Trajectory replaces language conditioning with coarse 2D trajectory sketches
+  overlaid on the image — a *motion-centric, embodiment-agnostic* task representation. SARA-RT
+  up-trains quadratic-attention VLAs into linear-attention models to cut inference cost. AutoRT
+  uses a VLM to describe scenes and an LLM (governed by a "Robot Constitution") to propose tasks,
+  autonomously steering a fleet to collect diverse data.
+- **Results**: RT-Trajectory **63% on 41 unseen tasks vs 29% for RT-2**. SARA-RT-2: 10.6% more
+  accurate and 14% faster than RT-2. AutoRT: 20 robots simultaneously (52 total) over 7 months,
+  77,000 episodes across 6,650 unique tasks.
+- **Relevance**: RT-Trajectory matters most here — representing tasks as *motions in image
+  space* rather than language decouples skill from embodiment, a direct conceptual ancestor of
+  Gemini 1.5's Motion Transfer, and a cheap trick a small project can copy.
+- **Links**: [RT-Trajectory 2311.01977](https://arxiv.org/abs/2311.01977) · [SARA-RT 2312.01990](https://arxiv.org/abs/2312.01990) · [AutoRT 2401.12963](https://arxiv.org/abs/2401.12963)
+
+### ALOHA Unleashed (Google DeepMind, Oct 2024)
+- **TL;DR**: Scaled teleop data + diffusion policies crack genuinely dexterous bimanual tasks
+  (shoelace tying, shirt hanging) on the low-cost ALOHA 2 platform.
+- **Key idea**: Pure imitation scales further than expected on contact-rich deformable-object
+  tasks given (a) thousands of high-quality demos per task from a cheap bimanual teleop rig and
+  (b) an expressive generative policy class (diffusion) instead of deterministic regression.
+- **Architecture & data**: Transformer trained with Diffusion Policy on ALOHA 2 (two 6-DoF arms,
+  parallel-jaw grippers). 26,000+ demos across 5 real tasks (8,658 for shirt hanging, 5,133 for
+  lace tying) plus 2,000+ demos on 3 sim tasks.
+- **Results**: 25–95% per-task success with separate per-task models — ~75% shirt hanging
+  (including an unseen shirt), ~70% gear insertion at millimeter tolerance, lace tying. Clear
+  success-vs-demo-count scaling (shirt: 75% → 30% when cut to 25% of data).
+- **Relevance**: Not cross-embodiment itself, but strategically decisive: it made ALOHA 2
+  DeepMind's data engine, and that corpus became the *source* embodiment whose skills Gemini
+  Robotics 1.5 later transfers to Franka and Apollo. Also calibrates "hard task" demo counts
+  (5–10k) against which the 50–200-demo adaptation numbers below should be read.
+- **Links**: [arXiv 2410.13126](https://arxiv.org/abs/2410.13126) · [project](https://aloha-unleashed.github.io/)
+
+### Gemini Robotics 1.0 + Gemini Robotics-ER (Google DeepMind, Mar 2025)
+- **TL;DR**: First Gemini-2.0-based VLA — cloud backbone + on-robot decoder — doubling prior
+  SOTA VLA generalization, learning new tasks from ~100 demos, and adapting to new embodiments
+  including a humanoid.
+- **Key idea**: Split the model into a large cloud-hosted VLA backbone and a small local action
+  decoder, so frontier-model semantics coexist with real-time control. Ship a companion
+  pure-reasoning model (ER) exposing embodied primitives — pointing, 3D boxes, grasp/trajectory
+  prediction, multi-view correspondence — for zero-shot robot programming.
+- **Architecture & data**: Built on Gemini 2.0; backbone query→response <160 ms, end-to-end
+  observation→action-chunk ≈250 ms, action chunking yields an **effective 50 Hz control rate**.
+  Trained on a large ALOHA 2 teleop corpus plus web-scale multimodal data. Introduced the ERQA
+  embodied-reasoning benchmark.
+- **Results**: "More than doubles performance on a comprehensive generalization benchmark
+  compared to other SOTA VLAs." Specialization to new short-horizon tasks from **as few as 100
+  demonstrations**. Adapted from ALOHA 2 to bi-arm Franka and the Apptronik Apollo humanoid.
+  ER achieved 2–3× the success of raw Gemini 2.0 on end-to-end perceive-plan-code control.
+- **Relevance**: First flagship to make new-embodiment onboarding an explicit product claim with
+  a concrete ~100-demo budget and a demonstrated ALOHA→Franka/Apollo pathway.
+- **Links**: [arXiv 2503.20020](https://arxiv.org/abs/2503.20020) · [blog](https://deepmind.google/discover/blog/gemini-robotics-brings-ai-into-the-physical-world/)
+
+### Gemini Robotics On-Device + SDK (Google DeepMind, Jun 2025)
+- **TL;DR**: A distilled VLA running entirely on the robot that nearly matches the cloud
+  flagship — and DeepMind's first *fine-tunable* release, adapting to new tasks and embodiments
+  with 50–100 demonstrations.
+- **Key idea**: Low-latency offline autonomy plus developer-facing adaptation: expose the model
+  through an SDK (with MuJoCo simulation for evaluation) so external teams port it to their own
+  hardware on a small demo budget.
+- **Results**: On visual/semantic/behavioral generalization suites, On-Device scores 0.52–0.74
+  vs the flagship's 0.60–0.75. **Task adaptation from 50–100 demonstrations.** Externally
+  adapted from ALOHA to bi-arm Franka FR3 (instruction following, garment folding) and to the
+  Apollo humanoid — a substantially different morphology — with the same recipe.
+- **Relevance**: The paradigm productized: multi-robot-pretrained checkpoint + documented
+  ~50–100-demo fine-tuning path + sim-based eval loop. The closest industrial template for this
+  project; the demo budget, SDK workflow, and MuJoCo-in-the-loop evaluation are all imitable.
+- **Links**: [blog](https://deepmind.google/discover/blog/gemini-robotics-on-device-brings-ai-to-local-robotic-devices/)
+
+### Gemini Robotics 1.5 + ER 1.5 (Google DeepMind, Sep 2025) — **Motion Transfer**
+- **TL;DR**: A single multi-embodiment VLA checkpoint controlling ALOHA 2, bi-arm Franka, and
+  Apollo out of the box, whose "Motion Transfer" recipe makes skills collected on one robot
+  execute **zero-shot** on another — paired with an ER model that orchestrates it agentically.
+- **Key idea**: Three innovations. (1) **Motion Transfer (MT)** — an architecture and training
+  recipe learning a *unified representation of motion and physical-interaction effects* across
+  heterogeneous robot data, aligning embodiments so skills become portable rather than siloed.
+  (2) **Embodied Thinking** — the VLA interleaves natural-language reasoning traces with actions
+  (decomposing "sort clothes" into primitive motion language before acting), buying multi-step
+  robustness, implicit success detection, and self-correction. (3) **Agentic split** — ER 1.5
+  (VLM orchestrator: planning, tool use, success detection) calls GR 1.5 (VLA action model) as
+  a tool.
+- **Architecture & data**: Both inherit Gemini's multimodal backbone. GR 1.5 is a Thinking VLA
+  emitting reasoning traces then actions. Robot data: thousands of diverse tasks on ALOHA 2,
+  bi-arm Franka, and Apollo, plus internet text/image/video. Notably, **>90% of development
+  evaluation episodes ran in a visually and physically aligned MuJoCo simulation**, with
+  verified sim-to-real rank consistency.
+- **Results** — the key cross-embodiment evidence:
+  - *One checkpoint, three form factors*: controls ALOHA, bi-arm Franka, and Apollo **without
+    robot-specific post-training**; near-80% on ALOHA generalization suites; beats GR 1.0 and
+    On-Device across instruction/action/visual/task generalization on all platforms.
+  - *Zero-shot skill transfer*: on a dedicated cross-embodiment benchmark each robot is tested
+    on tasks whose data exists **only** on another robot ("unhang the tape", "close the pear
+    organizer", "slide open the wardrobe door"). ALOHA performs Franka-only tasks and vice
+    versa; Apollo performs ALOHA-only skills despite a much wider embodiment gap. **Success
+    rates** are reported, not just progress scores.
+  - *Ablations*: single-embodiment training performs poorly on the transfer benchmark;
+    multi-embodiment data without MT helps; **MT amplifies the gain further**. The benefit
+    profile depends on target-robot data volume — for data-rich ALOHA raw cross-embodiment data
+    adds little but MT still extracts transfer; for moderate-data Franka both help; for the
+    data-scarce humanoid extra embodiment data gives the biggest absolute boost while MT's
+    alignment effect is weakest (largest embodiment gap). A nuanced scaling law for transfer.
+  - *Thinking*: thought traces lift multi-step progress across all three embodiments
+    (~0.26–0.60 off vs ~0.55–0.67 on), largest jump on the humanoid.
+  - *ER 1.5*: SOTA on an aggregate of 15 embodied-reasoning benchmarks, ahead of Gemini 2.5
+    Flash and GPT-5 (thinking).
+- **Relevance**: The strongest industrial validation of the paradigm to date — beyond OXE's
+  "pooled data helps" to **mechanistic transfer**, where an under-resourced embodiment inherits
+  *completed skills* from data-rich siblings. Directly transferable to this project: the
+  benchmark design (test each robot on tasks seen only by another), the ablation structure
+  (single-emb vs multi-emb vs multi-emb + alignment), and the sim-heavy evaluation loop.
+- **Links**: [arXiv 2510.03342](https://arxiv.org/abs/2510.03342) · [blog](https://deepmind.google/blog/gemini-robotics-15-brings-ai-agents-into-the-physical-world/)
+
+### Gemini Robotics-ER 1.6 (Google DeepMind, Apr 2026)
+- **TL;DR**: Incremental but publicly available upgrade of the embodied-reasoning brain — better
+  spatial logic, multi-view reasoning, industrial instrument reading, stricter safety
+  instruction following.
+- **Key idea**: Harden the orchestrator layer as a product: read analog gauges and sight glasses,
+  reason across multiple camera views, call tools (Search, custom functions, VLAs). Driven by
+  the Boston Dynamics partnership (autonomous industrial inspection with Spot).
+- **Relevance**: Indirect but useful — an ER-style orchestrator is inherently cross-embodiment
+  (it emits language subgoals and points, not motor commands), so a small project can pair a
+  frozen off-the-shelf ER model with a tiny per-robot action policy and fine-tune only the latter.
+- **Links**: [blog](https://deepmind.google/blog/gemini-robotics-er-1-6/)
+
+### Gemini Robotics 2 family (Google DeepMind, Jul 2026)
+- **TL;DR**: Three models — GR 2 (VLA), GR-ER 2, GR On-Device 2 — bringing whole-body humanoid
+  control, multi-fingered dexterity, multi-robot collaboration, and **few-hour / <200-example
+  adaptation to new bi-arm embodiments**.
+- **Key idea**: Extend the 1.5 agentic stack three ways: (1) **whole-body intelligence** — one
+  VLA coordinates locomotion + manipulation on Apptronik Apollo 2 (walk, crouch, bend, grasp in
+  one instruction); (2) **multi-robot collaboration** — ER 2 gives heterogeneous robots
+  (Apollo 2 + Franka F3 Duo) shared semantic understanding for workflow handoffs; (3) **cheap
+  onboarding** — On-Device 2 uses motion-transfer techniques for rapid adaptation to
+  community-scale hardware.
+- **Architecture & data**: GR 2 drives full humanoids and bi-arm robots with multi-fingered
+  hands (SharpaWave, Inspire) and grippers. ER 2 reportedly based on Gemini 3.5 Flash (128k
+  context) with video understanding for continuous progress tracking, native tool orchestration,
+  and "think while acting" concurrency. On-Device 2 builds on GR 1.5 technology plus Gemma
+  on-device models. Embodiments span Apollo 2, Franka Duo, Dexmate, Trossen, and the **low-cost
+  open-source SO-101 arm**. Safety: ASIMOV-Agentic benchmark released on HuggingFace (CC-BY-4.0).
+- **Results**: Apollo 2 dexterity — unscrew bulb 92%, pick-from-shelf 76.3% (Inspire hands), tie
+  trash bag 44%, ziplock 40%; gripper tasks — precise insertion 89.6% (Franka Duo), general
+  pick-and-place 74.2%. **Cross-embodiment adaptation (headline for this project)**: On-Device 2
+  adapts to new bi-arm embodiments "in a few hours, typically with fewer than 200 examples" —
+  on **SO-101, success jumps 6.7% → 53.3%** (vs 0.0% → 6.7% for On-Device 1); on Dexmate,
+  24.4% → 75.6% (vs 13.3% → 33.3%).
+- **Relevance**: **The single most relevant datapoint in the lineage for this project** — a
+  hobbyist-grade arm going from near-zero to >50% success with <200 demos and hours of compute,
+  purely because the base model's motion-transfer pretraining improved between generations
+  (the identical recipe topped out at 6.7% with On-Device 1). Adaptation efficiency is chiefly
+  a property of the *pre-trained prior*, not the fine-tuning procedure.
+- **Links**: [blog](https://deepmind.google/blog/gemini-robotics-2-brings-whole-body-intelligence-to-robots/) · [ER 2](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/gemini-robotics-er-2/)
+
+### Key lessons from the DeepMind lineage for a small-scale project
+
+- **Positive transfer is robust and largest where you have least data.** RT-1's Kuka experiment
+  (22%→39%), RT-1-X (+50% in small-data labs), GR 1.5's ablations all agree: pooled multi-robot
+  data helps most on the under-resourced embodiment — exactly the situation of a "new robot."
+- **The demo budget for onboarding a new embodiment has collapsed ~10× per generation and is now
+  ≲200.** RoboCat 1,000 (2023) → Gemini Robotics ~100 for new tasks (Mar 2025) → On-Device
+  50–100 (Jun 2025) → On-Device 2 <200 for a whole new bi-arm platform (2026). Budget hundreds,
+  not tens of thousands, per embodiment; reserve ALOHA-Unleashed-scale collection (5–10k) only
+  for a genuinely dexterous flagship skill.
+- **Adaptation efficiency lives in the pre-trained prior, not the fine-tuning trick.** The same
+  <200-demo recipe gave 6.7% with On-Device 1 and 53.3% with On-Device 2. If few-shot adaptation
+  is failing, fix the base model or data mixture, not the fine-tuning method.
+- **Alignment beats concatenation: use a motion-centric shared representation.** Naive
+  multi-embodiment co-training helps, but an explicit alignment recipe (Motion Transfer)
+  amplifies transfer into zero-shot *task success*. RT-Trajectory suggests a cheap version:
+  represent skills as trajectories/motions in image space. Note MT's limit — alignment weakens
+  as the embodiment gap widens.
+- **Split the stack: embodiment-agnostic brain + small embodied action model.** The ER↔VLA split
+  means perception, planning, success detection, and recovery come from a frozen general model,
+  reducing per-embodiment learning to short-horizon visuomotor grounding.
+- **Evaluate in aligned simulation and benchmark transfer explicitly.** >90% of GR 1.5's eval
+  episodes ran in a rank-consistent MuJoCo replica; its benchmark tests each robot on tasks
+  whose data exists only on *another* robot, reporting both progress and success. Both are
+  directly reproducible at small scale and turn "does transfer work?" into a measurable claim.
+- **Actions-as-tokens + web-scale co-training buys semantic generalization you don't collect.**
+  Keep vision-language data in the mixture (or start from a VLM/VLA); robot demos then only
+  teach the mapping into your action space.
+- **Thinking traces and self-improvement are cheap multipliers.** Interleaved language reasoning
+  improves long-horizon success and gives implicit success detection with no extra robot data;
+  RoboCat-style autonomous practice (36%→74%) can substitute for human demos once a seed policy
+  exists — both fit a compute-poor setting.
 
 ## 3. Open cross-embodiment models
 
