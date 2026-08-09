@@ -13,8 +13,69 @@
 
 ## 0. Field map (read this first)
 
-*(to be written after all sections land: one page connecting the lineages, the shared bets,
-and the open problems)*
+**The one-paragraph version.** Between 2022 and 2026 robot learning repeated the NLP playbook:
+first single-task policies, then one multi-task transformer (RT-1), then actions-as-tokens inside
+a web-pretrained VLM (RT-2), then pooled multi-robot data that provably helps every robot in the
+pool (RT-X / Open X-Embodiment). By 2025 the architecture had converged industry-wide. By 2026
+the frontier is no longer "can one model drive many bodies" — it demonstrably can — but **how
+cheaply a new body joins the club**, and that cost has fallen from ~1,000 demonstrations to under
+200 in three years.
+
+**The converged architecture.** Nearly every serious 2025–26 system is the same shape: a
+pretrained VLM backbone (semantics, language, web knowledge) at low frequency, plus a small
+**action expert** — flow-matching or diffusion — emitting **chunks** of continuous actions at
+high frequency. π0/π0.5, GR00T N1.x, Gemini Robotics, RDT, SmolVLA, X-VLA, TRI/Boston Dynamics
+LBM, Figure's Helix, 1X's Redwood all instantiate it. The disagreements are about (a) how the
+action expert is coupled to the backbone (gradient flow — see Knowledge Insulation), (b) discrete
+tokens vs continuous chunks (FAST vs flow), and (c) how many tiers the hierarchy has (Figure's
+S0/S1/S2 at 1 kHz/200 Hz/7 Hz is the extreme).
+
+**Three competing answers to the embodiment gap.** This is the axis that matters for this project:
+
+1. **Pool and scale** — throw all robots' data in and let capacity sort it out. Evidence: RT-X
+   (+50% on small-data labs), π0.5 (removing other robots' data hurts *everywhere*), AgiBot GO-1.
+   Simple, works, but leaves transfer implicit.
+2. **Align explicitly** — learn a shared representation in which embodiments are commensurable.
+   Evidence: Gemini Robotics 1.5's **Motion Transfer** (its ablation shows naive multi-embodiment
+   co-training helps, and alignment on top amplifies it into *zero-shot task success*), HPT's
+   stem/trunk/head, X-VLA's soft prompts, UniAct/LAPA/UniVLA's latent action codebooks. This is
+   where the interesting research is.
+3. **Erase the gap in the data or the interface** — make the embodiment irrelevant before the
+   policy sees it. Evidence: RDT2 and Sunday's ACT-1 (standardize on a gripper-relative action
+   space captured from *humans*), Generalist's GEN-1 (pretraining corpus contains no robot data
+   at all), Mirage/Shadow/RoVi-Aug (repaint the robot in the pixels), FAST+ (universal action
+   tokenizer). Often the cheapest, but bounded by the interface's expressiveness — e.g.
+   gripper-relative schemes only cover parallel-jaw arms.
+
+**The trend line that defines the paradigm.** Demos needed to onboard a new robot: RoboCat 2023 →
+1,000; Gemini Robotics Mar 2025 → ~100 for new tasks; On-Device Jun 2025 → 50–100; On-Device 2
+Jul 2026 → **<200 for an entirely new bi-arm platform, in a few hours**. The most important
+finding attached to that trend is a negative one: the *same* <200-demo recipe produced 6.7%
+success with On-Device 1 and 53.3% with On-Device 2 on the same SO-101 arm. **Adaptation
+efficiency is a property of the pre-trained prior, not of the fine-tuning procedure.** If
+few-shot adaptation underperforms, fix the base model or the data mixture — not the optimizer.
+
+**Where the data is coming from next: humans.** Four independent groups converged in 2025–26 on
+egocentric human video/wearables as the cross-embodiment substrate — PI's human-to-robot transfer
+(≈2× generalization, and the benefit *grows with pre-training scale*), NVIDIA's ego-video
+pretraining for GR00T N1.7, Generalist's GEN-1 (500k+ hours, no robot data), Sunday's $200
+capture glove. The embodiment gap is quietly being reframed from a modeling problem into a
+data-interface problem.
+
+**What is still unsolved** (and therefore where a small project can say something new):
+- **Morphology encoding is a locomotion technology.** URDF/kinematic-graph conditioning is mature
+  in legged RL (MetaMorph, URMA, GET-Zero, Body Transformer) and almost absent from manipulation
+  VLAs, which mostly use opaque embodiment IDs or per-robot heads. That gap is a legitimate
+  research angle.
+- **Alignment degrades exactly where you need it.** Gemini 1.5's ablations show Motion Transfer's
+  benefit is *weakest* for the humanoid — the largest embodiment gap — which is the opposite of
+  what the marketing implies.
+- **Evaluation rigor is rare.** TRI's LBM paper (blind A/B, confidence intervals, thousands of
+  rollouts, published nulls) is the outlier, not the norm; most releases are self-reported with
+  no error bars. Being rigorous is cheap differentiation.
+- **The standard benchmarks can't test the paradigm.** LIBERO is single-arm and saturated at
+  ~98%. Cross-embodiment claims need a suite where the *same* task runs on several arms with one
+  held out — which is why §6.2 matters more than any leaderboard.
 
 ## 1. Physical Intelligence lineage ⏳
 
@@ -1352,8 +1413,109 @@ automation can't reach.
 
 ## 7. Synthesis — implications for this project
 
-*(what we adopt, what we test, experimental design)*
+### 7.1 What the field says we should build
+
+The literature converges on a protocol this project can execute at small scale with high fidelity:
+
+1. Train one policy on **N robots sharing a task suite**, hold out one or two arms entirely.
+2. Adapt to the held-out arm on a **demo budget swept from 0 to ~300** — the range where the
+   entire field's results live (§4.6).
+3. Report **success vs demos** and **success vs GPU-hours**, against a from-scratch baseline.
+4. Include the control that most demos skip: **pretrained-on-one-arm** as well as
+   pretrained-on-N-arms, so the claim is "multi-embodiment pretraining helps," not merely
+   "pretraining helps."
+5. Test each robot on tasks whose data exists **only on another robot** (Gemini 1.5's benchmark
+   design), reporting completion, not just progress.
+
+### 7.2 Locked design decisions (M0)
+
+| Decision | Choice | Why |
+|---|---|---|
+| **Simulator** | **robosuite 1.5 + MimicGen + robomimic** (MuJoCo) | Tasks are robot-agnostic *by construction* — one-argument robot swap. MimicGen has already demonstrated exactly our protocol (Panda-source demos regenerated for Sawyer/IIWA/UR5e). Pure MuJoCo runs natively on the Spark's aarch64 and matches existing MuJoCo experience. |
+| **Scale-up option** | ManiSkill3 (GPU-parallel eval) | 10–1000× faster rollouts and an official 4-arm × 6-task set — **but verify SAPIEN aarch64 wheels on the Spark in week 1** before committing anything to it. |
+| **Training arms** | Panda, Sawyer, IIWA, Kinova Gen3 | All in robosuite, same parallel-jaw gripper class, so gripper effects don't confound morphology effects. |
+| **Held-out (near)** | UR5e | Same class, similar DoF/reach → "interpolation" in AnyBody's taxonomy. |
+| **Held-out (far)** | SO-101 (imported from MuJoCo Menagerie) | 5-DoF, short reach, hobbyist-grade → "extrapolation." Also the exact arm Gemini On-Device 2 reports on, giving an external reference point. |
+| **Tasks** | 6–8 robosuite tasks across the precision spectrum: Lift, Stack, PickPlace-Can, NutAssembly-Square, Door, ToolHang | Verify reachability per arm before locking; SO-101's workspace will force scaled-down scene variants — document the scaling. |
+| **Data route** | ~10 scripted/human source demos per task → MimicGen-regenerate ~1,000 per (task, arm) | ≈30–40k trajectories, a weekend of CPU generation. Held-out arm gets small adaptation sets of {5, 10, 25, 50, 100, 300}. |
+| **Data format** | **LeRobotDataset v3** | Makes π0, GR00T, SmolVLA, X-VLA, ACT, Diffusion Policy all trainable on our data with zero conversion, and it's what reviewers expect in 2026. |
+| **Action head** | OpenVLA-OFT recipe: parallel decoding, action chunking, continuous actions, L1 (or flow) | Backbone-agnostic, Spark-friendly, and it is what closed the LIBERO gap. |
+| **Policy A (ours)** | Small transformer, HPT-style per-embodiment stems + shared trunk, ~50–200M | Full training on Spark; the architecture whose thesis we are testing. |
+| **Policy B (pretrained)** | **X-VLA-0.9B** primary, **SmolVLA-450M** fallback, GR00T N1.5 if we want NVIDIA's supported pipeline | Sub-1B fully fine-tunes on Spark; X-VLA's soft-prompt conditioning is the cleanest published new-embodiment mechanism. |
+
+### 7.3 The distinctive contribution — decomposing the embodiment gap
+
+A pure reproduction is a weak portfolio piece. The thing simulation makes possible that the real
+world does not: **separating the visual gap from the kinematic gap.** In sim we can render arm A's
+appearance while executing arm B's kinematics, and vice versa — a factorial 2×2 that no real-robot
+lab can run. Combined with Shadow-style robot masking (§4.4, nearly free to implement in MuJoCo),
+this yields a clean answer to a question the field currently hand-waves: *when a policy fails on a
+new robot, is it because the robot looks different or because it moves differently?*
+
+Secondary angles, in order of cost-effectiveness:
+- **Interface ablation**: delta-EEF (transfer-friendly) vs RDT-style padded joint-space
+  (transfer-hostile). A defensible small-scale finding on its own.
+- **Conditioning ablation**: no conditioning vs embodiment ID token vs per-arm stems vs soft
+  prompts — the four families of §4.1 on one controlled suite. Nobody has published this
+  head-to-head at matched scale.
+- **Morphology encoding for manipulation** — the gap identified in §0. Feeding a kinematic-graph
+  embedding (URMA/GET-Zero style) into a manipulation policy is genuinely underexplored.
+
+### 7.4 Evaluation protocol
+
+- **≥50 rollouts** per (task, arm, condition) with randomized object poses; **3 training seeds**;
+  report mean ± standard error. Blind/scripted scoring where possible.
+- **Fix the camera rig and scene identically across arms** so embodiment is the only variable
+  (SimplerEnv's visual-matching discipline).
+- **Headline metric**: *demos-to-X%* — demos needed to reach 80% of the 300-demo ceiling — plus
+  GPU-hours on the Spark as a second x-axis. Spark's ~273 GB/s bandwidth makes wall-clock a
+  genuinely interesting practical metric, not an apology.
+- **Report AnyBody-style splits separately**: UR5e (interpolation) and SO-101 (extrapolation) get
+  their own numbers, never a blended "transfer" figure.
+- **Frame results against the field's cluster**, not against LIBERO: Octo ~100, GR00T 30/100/300,
+  Gemini On-Device 2 <200. The defensible claim is *"our sim protocol reproduces the industry's
+  adaptation-demo curve and isolates why it works."*
+
+### 7.5 Pitfalls to design against (each has burned published work)
+
+1. **Normalization statistics** — recompute action/proprio q01/q99 per embodiment *and* per
+   adaptation set; never reuse the pretraining `unnorm_key` for the held-out arm. Log the stats
+   used in every eval run. This is the single most common silent failure in cross-embodiment
+   fine-tuning.
+2. **Action-space aliasing** — confirm every arm's controller uses the same convention (frame,
+   rotation parameterization, gripper polarity). robosuite's OSC controllers give this for free;
+   other stacks need checking.
+3. **Expert-style overfitting** — MimicGen/motion-planner demos have a characteristic style;
+   policies can look great in-distribution and collapse on the held-out arm for reasons unrelated
+   to embodiment. Include a noise-injected or teleoped subset and evaluate on object-pose
+   distributions wider than the generation distribution.
+4. **Benchmark saturation** — don't headline LIBERO numbers.
+5. **Silent capping** — if we drop tasks or arms for reachability reasons, say so explicitly in
+   the write-up and the README.
+
+### 7.6 Showcase implications (from §5's demo-craft synthesis)
+
+The demo formats that earn technical credibility map directly onto this project's milestones:
+- *One brain, many bodies* — identical weights driving N arms simultaneously in a grid. This is
+  Figure's "same weights, two robots" proof, which is the single most persuasive generality demo.
+- *Learning race* — split screen, pretrained-adapted vs from-scratch on the held-out arm, with a
+  live success counter, the counted-repetitions format Generalist uses.
+- *Perturbation reel* — objects shoved mid-episode, on camera, in one take (Skild/Atlas format).
+- *Failure reel* — short, honest, and it buys more credibility than it costs.
+- *Data-engine shot* — MimicGen regenerating one source demo across five arms, visualized. Shows
+  the pipeline, not just the result.
+- **Norms to follow without exception**: label real-time vs sped-up on every clip; prefer uncut
+  takes; state the demo count and seed behind every number shown.
 
 ## 8. Reading queue
 
-*(papers spotted but not yet summarized)*
+Spotted but not yet summarized in depth:
+- DexMimicGen (ICRA 2025) — bimanual/dexterous demo multiplication, 60 demos → 21k+.
+- MOTIF (2026) — vector-quantized embodiment-agnostic "action motifs" for few-shot transfer,
+  evaluated on ManiSkill's 4-arm setup. Closest 2026 academic work to this project.
+- ET-VLA (2025) — synthetic continued pretraining for new embodiments.
+- Being-H0.5 (BAAI, 2026) — human-centric pretraining for cross-embodiment generalization.
+- Cosmos world models (NVIDIA) — synthetic data generation for robotics.
+- 1X World Model / UnifoLM-WMA-0 (Unitree) — world models as policy evaluators, an alternative
+  to rollout-based eval.
+- TRI LBM follow-up on co-training data-modality tradeoffs (2026).
