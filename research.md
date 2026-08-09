@@ -1218,10 +1218,137 @@ What these companies visibly reward in robotics research engineers.
   Policy pedigree) and Galaxea (paper + open weights) show that shipping reproducible methods
   the community adopts is the strongest individual credential in this market.
 
-## 6. Datasets, benchmarks, simulators
+## 6. Datasets, benchmarks, simulators ⏳
 
-*(agent running — OXE, DROID, BridgeData V2, AgiBot World, LIBERO, SimplerEnv, RoboCasa,
-ManiSkill3, MuJoCo Menagerie/Playground, LeRobot ecosystem)*
+### 6.1 Datasets
+
+**Open X-Embodiment (OXE)** (GDM + 34 labs, 2023, still the substrate in 2026) — 1M+ real
+trajectories, 22 embodiments, 527 skills, 60 source datasets converted to RLDS. **Pitfalls that
+this project's unified interface must solve:** (1) *action-space inconsistency* — the same action
+vector means different things per sub-dataset (relative vs absolute, different EEF frames,
+different gripper conventions); most consumers coerce to delta-EEF + gripper and drop the rest.
+(2) *camera conventions vary* (pose relative to robot, intrinsics, which camera is "primary").
+(3) *normalization statistics are per-sub-dataset* and must be matched at inference.
+(4) *control-frequency mismatch*. Also note the effective diversity is lower than advertised —
+the top four robot types account for **over 85%** of the real data.
+[arXiv 2310.08864](https://arxiv.org/abs/2310.08864)
+
+**DROID** (Stanford/Berkeley + 13 institutions, 2024) — 76k teleoperated Franka trajectories,
+~350 h, 86 tasks, **564 scenes in 52 buildings on 3 continents**, 50 operators, 12 months, on a
+standardized rig (Franka Panda + Robotiq, 2 external Zed 2 stereo + wrist Zed Mini, Quest 2
+teleop), every episode with calibrated multi-view RGB-D + language. Single embodiment, so not a
+transfer dataset — but it is the reference for what a *clean per-embodiment data standard* looks
+like, and DROID-pretrained checkpoints are good adaptation sources.
+[arXiv 2403.12945](https://arxiv.org/abs/2403.12945)
+
+**BridgeData V2** (Berkeley RAIL, 2023) — 60,096 trajectories on a $3k WidowX 250 across 24
+environments; the standard low-cost-arm pretraining corpus and the substrate of SimplerEnv's
+WidowX eval. Republished in LeRobot v3 format.
+[arXiv 2308.12952](https://arxiv.org/abs/2308.12952)
+
+**AgiBot World** (AgiBot + OpenDriveLab, 2025) — **1,001,552 trajectories, 2,976 hours, 217
+tasks, 87 skills, 106 scenes**, from a fleet of 100 identical dual-arm mobile manipulators.
+Policies pretrained on it beat OXE-pretrained ones by ~30% in- and out-of-distribution — useful
+evidence that *homogeneous* scale can beat heterogeneous aggregation for a target platform.
+[arXiv 2503.06669](https://arxiv.org/abs/2503.06669)
+
+**RoboMIND** (X-Humanoid, 2024; 2.0 in Dec 2025) — **the best deliberately multi-embodiment
+teleop dataset**: 107k trajectories, 479 tasks, 96 object classes, across four embodiments
+collected under one unified protocol, so embodiment is the controlled variable — Franka Panda
+(52,926), UR5e (25,170), AgileX Cobot Magic V2.0 dual-arm (10,629), Tien Kung humanoid with
+dexterous hands (19,152). RSS 2025. **The closest existing real dataset to this project's sim
+design** — worth citing as real-world corroboration.
+[arXiv 2412.13877](https://arxiv.org/abs/2412.13877)
+
+**LeRobot ecosystem** (HuggingFace, 2024–2026) — **the de-facto open tooling stack**: the
+`LeRobotDataset` v3 format (episodes packed into Parquet + MP4 video chunks with relational
+metadata, streamable from the Hub without full download), training code, a policy zoo (ACT,
+Diffusion Policy, π0, π0-FAST, SmolVLA, GR00T), and the $100-class SO-100/SO-101 5-DoF
+3D-printable arms that spawned 1,000+ community datasets. NVIDIA, Physical Intelligence, and
+Google all publish LeRobot-format checkpoints and tutorials.
+**→ This project's data pipeline should emit LeRobotDataset v3 regardless of simulator** — it
+makes every mainstream policy trainable on our data with zero conversion work, and it is the
+format reviewers expect in 2026.
+[format docs](https://huggingface.co/docs/lerobot/lerobot-dataset-v3) · [code](https://github.com/huggingface/lerobot)
+
+### 6.2 Which benchmarks actually support *the same tasks across multiple embodiments*
+
+This is the decisive question for the project. Answer:
+
+| Benchmark | Same tasks across N embodiments? | Arms | Demo generation | Engine |
+|---|---|---|---|---|
+| **robosuite + MimicGen** | **Yes, by design** — one-argument robot swap; MimicGen ships a 4-arm × same-tasks subset | 8: Panda, Sawyer, UR5e, IIWA, Kinova3, Jaco, Baxter, ALOHA | MimicGen from ~10 source demos | **MuJoCo** |
+| **ManiSkill3** | **Yes** — tasks accept an embodiment arg; official 4-arm × 6-task demo set | Panda, xArm6, xArm7, WidowX AI, SO-100, + | motion-planning scripted experts, RL, teleop | SAPIEN/PhysX (GPU) |
+| **RoboTwin 2.0** | Yes — 50 bimanual tasks × 5 embodiments | 5 dual-arm platforms | MLLM code-gen experts | SAPIEN |
+| **AnyBody** | Yes — reach/push × 18 morphologies | 18 procedural + real-based | RL | Isaac Sim |
+| **RoboCasa** | Partial — several form factors | mobile manipulators, humanoids | MimicGen | MuJoCo |
+| **LIBERO / Meta-World / SimplerEnv** | **No** — fixed embodiment | 1–2 | — | MuJoCo / SAPIEN |
+
+**robosuite + robomimic + MimicGen** (ARISE Initiative / NVIDIA, 2020–2026) — MuJoCo-based, and
+**every task is robot-agnostic**: the same Lift/Stack/PickPlace/NutAssembly/ToolHang environment
+runs on 8 arms with a one-argument change; reward functions, observation spaces, and controllers
+adapt automatically. MimicGen transforms *object-relative EEF trajectory segments*, which are
+embodiment-independent — hence its released dataset includes a **"robot transfer" subset of
+~16,000 generated demos across 4 arms (Panda, Sawyer, IIWA, UR5e) on the same tasks, generated
+from Panda-only source demos**. MimicGen overall: <200 human demos → 50k+ generated demos across
+18 tasks. RoboCasa found MimicGen-generated data *beats* human data at equal cost (47.6% vs
+28.8%). [robosuite](https://robosuite.ai/) · [MimicGen arXiv 2310.17596](https://arxiv.org/abs/2310.17596)
+
+**ManiSkill3** (UCSD Hao Su Lab, 2024–2026) — GPU-parallelized (up to 30k+ FPS with rendering),
+20+ embodiments, tasks that accept an embodiment argument, an official cross-embodiment demo set
+(6 tabletop tasks × 4 arms × 100 motion-planning episodes), SimplerEnv integrated, heterogeneous
+GPU simulation. 10–1000× faster with 2–3× less GPU memory than comparable platforms.
+⚠️ **aarch64 risk**: SAPIEN wheels are x86_64-centric — must be verified on the Spark in week 1
+before committing. Physics is PhysX, not MuJoCo, so MuJoCo experience transfers only partially.
+[arXiv 2410.00425](https://arxiv.org/abs/2410.00425)
+
+**MuJoCo Menagerie + Playground** (GDM, 2022–2026) — Menagerie is curated, quality-graded MJCF
+models of essentially every arm you'd want (Panda, FR3, UR5e, UR10e, xArm7, Lite6, KUKA iiwa14,
+Sawyer, Unitree Z1, ViperX 300, **SO-100/SO-101**, ALOHA 2, plus grippers and dexterous hands).
+Playground adds MJX/Warp GPU-accelerated environments with Madrona batch rendering and the
+train-in-minutes-on-one-GPU recipe. Building a custom suite on Menagerie gives maximum control
+and runs natively on the Spark's aarch64 + CUDA via JAX — at the cost of writing your own tasks,
+randomization, and demo-generation plumbing that robosuite/ManiSkill already ship.
+[Menagerie](https://github.com/google-deepmind/mujoco_menagerie) · [Playground](https://github.com/google-deepmind/mujoco_playground)
+
+**LIBERO** (UT Austin, 2023) — 130 language-conditioned Franka tasks in robosuite/MuJoCo; the
+universal VLA fine-tuning benchmark. **Single-embodiment and now saturated** (OpenVLA 76.5% →
+OpenVLA-OFT 97.1%; community SOTA ~98%), though on LIBERO-OOD variants all tested VLAs fall
+below 21%. Good for validating fine-tuning code against published numbers; **useless for
+cross-embodiment claims**. [arXiv 2306.03310](https://arxiv.org/abs/2306.03310)
+
+**SimplerEnv** (UCSD/Berkeley, CoRL 2024) — real-to-sim *evaluation* environments reproducing
+Google Robot and WidowX+Bridge real setups, with "visual matching" and "variant aggregation"
+protocols that correlate sim scores with real rollouts. Now ported into ManiSkill3 with GPU
+parallelism. **A model for this project's eval protocol** (fixed visual-matching scenes, pose
+sweeps) rather than a training ground. [code](https://github.com/simpler-env/SimplerEnv)
+
+**AnyBody** (Princeton VL, 2025) — purpose-built for *morphology generalization*: 18 robot
+variations (8 procedurally generated + 10 real-robot-based) on reach/push tasks, with
+**interpolation / extrapolation / composition test splits**. Its split taxonomy is the cleanest
+existing formalization of "held-out embodiment" evaluation axes — **borrow it for our eval
+protocol even though we won't use Isaac Sim.** [arXiv 2505.14986](https://arxiv.org/abs/2505.14986)
+
+**RoboCasa** (UT Austin / NVIDIA, 2024) — 120 kitchen scenes, 2,500+ objects, 100 tasks, 100k+
+MimicGen trajectories, multiple form factors. MuJoCo-native but targets mobile manipulation in
+large scenes — heavier than needed for a controlled N-arms study. [arXiv 2406.02523](https://arxiv.org/abs/2406.02523)
+
+**Isaac Lab / Isaac Sim** (NVIDIA) — GPU-parallel, **buildable natively on aarch64/DGX Spark**
+(ARM publishes a DGX Spark Isaac learning path), with mimic-style data generation and teleop.
+But its manipulation tasks are robot-specific configs, not a robot-agnostic suite — making 5 arms
+share one task suite is more custom work than robosuite or ManiSkill.
+
+**Genesis** — impressive throughput claims (43M FPS on simplified state-based scenes) but the
+manipulation benchmarking layer (standard task suites, demo datasets, eval protocols) is still
+thin, and aarch64 support is unverified. **Watch, don't build on.**
+
+### 6.3 Sim data generation
+**MimicGen-family demo multiplication is the proven route**: collect ~10 source demos once,
+regenerate thousands per arm automatically, because object-relative EEF segment transforms are
+embodiment-independent. DexMimicGen extended this to bimanual/dexterous (60 human demos → 21k+,
+ICRA 2025). RoboTwin 2.0 uses MLLM-written scripted experts with sim-in-the-loop refinement.
+ManiSkill3 ships motion-planning scripted experts. Teleop-in-sim is the fallback for tasks
+automation can't reach.
 
 ## 7. Synthesis — implications for this project
 
