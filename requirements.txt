@@ -1,0 +1,5 @@
+# Verified working on DGX Spark (aarch64, GB10, sm_121) 2026-08-09.
+# mujoco is pinned: robosuite 1.5.2 uses MjData.qM, removed in mujoco 3.11.
+mujoco==3.3.7
+robosuite==1.5.2
+numpy==1.26.4
