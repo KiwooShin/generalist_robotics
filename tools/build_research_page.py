@@ -312,7 +312,9 @@ def main():
         for num, label, slug in toc
     )
 
-    page = f"""<title>Generalist Robotics — Research Survey</title>
+    page = f"""<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generalist Robotics — Research Survey</title>
 <style>{CSS}</style>
 <div class="shell">
   <header class="masthead">
