@@ -592,10 +592,279 @@ LAPA, UniVLA, …)*
 *(agent running — embodiment tokens, per-robot stems/heads, unified action spaces, LoRA
 practice, normalization gotchas, few-shot adaptation numbers across the field)*
 
-## 5. Industry landscape
+## 5. Industry landscape ⏳
 
-*(agent running — Generalist AI GEN-0, Skild, Figure Helix, 1X, TRI/BD LBMs, Covariant
-RFM-1, AgiBot, …)*
+*Everyone except Physical Intelligence (§1) and DeepMind (§2). Note where claims are
+technically documented vs marketing — the gap is large and informative.*
+
+### Generalist AI — GEN-0 / GEN-1 ("Harmonic Reasoning")
+- **What they claim**: Pete Florence's startup (he co-created RT-2 and PaLM-E at DeepMind)
+  claims genuine **robot-data scaling laws**: downstream post-training performance is a
+  predictable power law in pretraining data and model size. GEN-1 (Apr 2026) is claimed as
+  "the first general physical AI model to cross the threshold of commercial viability" — 99%
+  success where prior models hit 64%, ~3× faster execution.
+- **What's published**: The most substantive non-paper technical disclosure in the field. The
+  GEN-0 post (Nov 2025) reads like a compressed tech report: a **10B+ parameter embodied
+  foundation model trained on 270,000+ hours of real dexterous manipulation** (growing
+  10,000 hrs/week from homes, bakeries, laundromats, warehouses across 1,000s of sites), with
+  actual scaling-law curves, validation-loss and reverse-KL analyses, blind A/B real-robot
+  evals across 16 task sets, and strict train/post-train data separation. Two headline claims:
+  (1) **"Harmonic Reasoning"** — trained on asynchronous continuous-time interleaved streams of
+  sensing and acting tokens, letting the model "think and act simultaneously" without a
+  System-1/System-2 split; (2) a **phase transition / "ossification"** observation — 1B models
+  plateau and cannot absorb the data firehose while ~7B+ models keep internalizing it, claimed
+  as the first ossification observation in robotics. GEN-1 adds **500,000+ hours of
+  pretraining data, none of it robot data** (low-cost wearables on humans), plus ~1 hour of
+  robot fine-tuning data per production task. Not peer-reviewed; curves self-reported;
+  architecture withheld. Raised $400M Series B at $2B (Jun 2026).
+- **Cross-embodiment angle**: Strong but manipulation-centric — transfer across 6-DoF, 7-DoF
+  and 16+DoF semi-humanoid platforms. The bigger bet is **embodiment-free pretraining**: since
+  GEN-1's corpus is human wearable data, the robot embodiment only enters at fine-tuning,
+  arguably the cleanest "one brain, many bodies" story in industry.
+- **Demo style**: The current benchmark for credibility-first demos — **counted consecutive
+  cycles** (1,800 consecutive block-packing cycles, 200+ vacuum-servicing cycles at 99%, 86
+  consecutive t-shirt folds), explicit **"1× speed, not sped up"** labels, speed comparisons
+  vs their own prior model, long uncut single-take runs, and a t-SNE data-browser flythrough
+  communicating corpus scale visually. They also admit failures ("not all tasks hit these rates").
+- **Links**: [GEN-0](https://generalistai.com/blog/nov-04-2025-GEN-0) · [GEN-1](https://generalistai.com/blog/gen-1)
+
+### Skild AI — Skild Brain ("omni-bodied")
+- **What they claim**: One shared brain that is **omni-bodied** — it can wake up in a body it
+  has never seen (quadruped, humanoid, tabletop arm, mobile manipulator) and control it
+  zero-shot or with minimal post-training. Raised $1.4B at $14B+ led by SoftBank (2026).
+- **What's published**: Thin relative to the claims — narrative blogs, no papers or curves. A
+  **hierarchical architecture** (low-frequency high-level manipulation/navigation policy →
+  high-frequency low-level joint/torque policy) trained on simulation at scale + internet human
+  video + targeted real robot data. The omni-bodied post claims training across **~100,000
+  procedurally varied robot bodies over ~1,000 simulated years**, with test robots explicitly
+  held out. Founders Deepak Pathak and Abhinav Gupta (CMU) have strong paper trails, but
+  Skild-branded quantitative evals are essentially absent — the biggest claim-to-evidence gap
+  among well-funded players.
+- **Cross-embodiment angle**: The most extreme in industry — embodiment *randomization* as the
+  core training principle, so the model infers its own morphology online from proprioception.
+- **Demo style**: **Adversarial robustness stunts** rather than chores — a quadruped's calf is
+  amputated and it re-learns a gait in ~7–8 s; joints locked and it walks on three legs; wheels
+  jammed → switches from rolling to walking; stilts beyond training range. Memorable and
+  directly visualizes generalization. Lesson: *demonstrate the property you claim (adaptivity)
+  via visible perturbation, on camera, in one take.*
+- **Links**: [general-purpose brain](https://www.skild.ai/blogs/building-the-general-purpose-robotic-brain) · [omni-bodied](https://www.skild.ai/blogs/omni-bodied)
+
+### Figure AI — Helix → Helix 02
+- **What they claim**: Helix (Feb 2025) was the first VLA controlling a full humanoid upper body
+  at 200 Hz; **Helix 02 (Jan 2026)** extends to full-body loco-manipulation — "a single neural
+  system controlling the full body directly from pixels."
+- **What's published**: Detailed blogs, no papers. Helix: dual-system VLA — **S2, a 7B VLM at
+  7–9 Hz** for scene/language understanding; **S1, an 80M transformer at 200 Hz** outputting a
+  35-DoF upper-body action space; trained on **~500 hours** of teleop with VLM auto-labeled
+  language; runs on dual embedded low-power GPUs onboard. Helix 02 moves to a **three-tier
+  hierarchy**: S0 (10M whole-body controller at **1 kHz**, trained on 1,000+ hours of human
+  motion across 200k+ simulated environments), S1 (200 Hz, full-body joint targets from all
+  sensors including palm cameras and 3-gram-sensitive fingertip tactile), S2 (semantic
+  reasoning). Evals absent — no success rates, no N.
+- **Cross-embodiment angle**: Deliberately none — the vertical-integration counterexample. One
+  brain, one body, co-designed with hardware. Their scaling story is fleet data from their own
+  robots, not cross-embodiment transfer.
+- **Demo style**: Defines the "quiet competence" genre — the Helix 02 flagship is a **four-minute,
+  uncut, end-to-end dishwasher unload/reload across a full kitchen: 61 loco-manipulation
+  actions, no resets, no interventions** — plus two robots with *identical weights* wordlessly
+  handing groceries to each other. Techniques worth copying: same-weights multi-robot
+  collaboration (proves generality more than any single skill), conceptual-command tests on
+  camera ("pick up the desert item" → toy cactus), and one continuous shot as the hero asset
+  instead of a montage.
+- **Links**: [Helix](https://www.figure.ai/news/helix) · [Helix 02](https://www.figure.ai/news/helix-02)
+
+### 1X Technologies — NEO, Redwood, World Model Lab
+- **What they claim**: NEO is the first consumer home humanoid ($20k / $499-mo, shipping 2026)
+  running Redwood, an onboard "home brain," with a **teleop-to-autonomy flywheel** where human
+  "Expert Mode" operators fill capability gaps while generating training data.
+- **What's published**: Mid-level blog detail. Redwood: a **160M-parameter vision-language
+  transformer + diffusion-policy action decoder** fusing language embeddings, ViT tokens, and
+  proprioception; outputs arm/hand *and* locomotion/pelvis commands simultaneously (whole-body
+  multi-contact behaviors like bracing against a wall to open a heavy door); trained on teleop +
+  autonomous episodes from EVE and NEO, **including failure rollouts used to supervise
+  prediction heads**; runs fully onboard at **~5 Hz**. Separately, the 1X World Model (Jan 2026)
+  is a learned action-conditioned video simulator used for policy evaluation, with a dedicated
+  World Model Lab (Jun 2026).
+- **Cross-embodiment angle**: Two embodiments (EVE wheeled → NEO humanoid) in one corpus, but
+  the story is vertical.
+- **Demo style — a cautionary tale**: The NEO launch videos (cinematic home chores) went viral,
+  then journalists demonstrated nearly everything was teleoperated — in a WSJ session ~100% of
+  the work was Expert Mode — plus privacy blowback over remote operators seeing inside homes.
+  **Undisclosed or ambiguous teleop is now the fastest way to torch credibility**; the field's
+  press literacy has caught up.
+- **Links**: [Redwood](https://www.1x.tech/discover/redwood-ai)
+
+### NVIDIA — Isaac GR00T platform + Cosmos (ecosystem angle)
+- **What they claim**: Not one brain but the **picks-and-shovels for everyone's brain** —
+  open(ish) GR00T N-series models, Cosmos world foundation models for synthetic data, Isaac
+  Sim/Isaac Lab + the Newton physics engine, and three-computer deployment (DGX train /
+  Omniverse simulate / Jetson Thor run).
+- **What's published**: GR00T N1 paper and Cosmos tech reports (models covered in §3). At GTC
+  March 2026: GR00T N1.7 to early access with commercial licensing, **GR00T N2 previewed**
+  (built on DreamZero research, claimed >2× success on new tasks in new environments vs leading
+  alternatives), **Cosmos 3** announced as "the first world foundation model unifying synthetic
+  world generation, vision reasoning and action simulation," Isaac Lab 3.0 on Newton 1.0.
+- **Cross-embodiment angle**: Structural — GR00T is explicitly cross-embodiment and openly
+  fine-tunable, making NVIDIA the default brain for the long tail of hardware companies. The
+  deeper strategy is that *everyone* trains on NVIDIA sim and silicon (adopters include 1X,
+  AgiBot, Agility, Boston Dynamics, Figure, FANUC, ABB, KUKA; even Generalist AI and Skild use
+  NVIDIA infra).
+- **Demo style**: Ecosystem-sizzle keynote montages — effective for platform positioning, not a
+  model for a research portfolio. The useful artifact style is their developer content:
+  reproducible fine-tuning notebooks and sim-to-real walkthroughs.
+- **Links**: [GTC 2026](https://nvidianews.nvidia.com/news/nvidia-and-global-robotics-leaders-take-physical-ai-to-the-real-world) · [Isaac GR00T](https://developer.nvidia.com/isaac/gr00t)
+
+### Tesla — Optimus
+- **What they claim**: One end-to-end neural stack shared with FSD, trained via human
+  demonstration, video, simulation, and factory fleet data; Optimus V3 with a 22-DoF/50-actuator
+  hand entering production in 2026.
+- **What's published**: **Essentially nothing** — no papers, no technical blog, no eval
+  protocol. Evidence is X posts, keynote segments, and earnings calls. Musk acknowledged on the
+  Q4 2025 call that factory Optimus units are "still very much in the R&D phase," and V3
+  production slipped to late summer 2026. The 2024 "We, Robot" bartender robots were later
+  confirmed teleoperated.
+- **Demo style**: High-production spectacle (kung fu, dancing, running) optimized for virality,
+  with autonomy asserted in a caption rather than demonstrated by format. **Anti-pattern for a
+  research portfolio.**
+
+### Toyota Research Institute + Boston Dynamics — Large Behavior Models
+- **What they claim**: Diffusion-based multitask "Large Behavior Models" as the route to
+  general-purpose robots; the Oct 2024 partnership put TRI's LBMs on Atlas.
+- **What's published**: **The most scientifically rigorous output in this survey.** TRI's
+  arXiv 2507.05331, "A Careful Examination of Large Behavior Models for Multitask Dexterous
+  Manipulation" (Jul 2025, ~80 authors), is a real evaluation paper: diffusion-policy LBMs on
+  large sim+real corpora with a statistically principled pipeline (blind A/B, confidence
+  intervals, thousands of rollouts), with the honest headline that **multitask pretraining
+  makes policies more successful and robust and cuts new-task data needs** — plus candid nulls
+  where scaling didn't help. The Atlas LBM blog (Aug 2025) gives real specs: **450M-param
+  Diffusion Transformer with flow matching; 30 Hz observations (stereo + proprioception +
+  language); 48-step (1.6 s) action chunks over a ~50-DoF full-body action space**; VR teleop
+  built on the MPC controller with haptics and foot trackers; follow-ups showed 1.5–2× inference
+  speedup without degradation.
+- **Cross-embodiment angle**: Moderate — the LBM recipe transferred from bimanual station arms
+  to Atlas, with sim+real co-training across platforms, but no "any body zero-shot" claim.
+  Deliberate scientific conservatism.
+- **Demo style**: The "Spot Workshop" Atlas video is the reference for **honest long-horizon
+  demo craft** — one uncut sequence of sequential language-prompted subtasks (parts sorting,
+  barstool flip, tire manipulation, tablecloth spreading), with mid-run perturbations (engineers
+  shoving parts, closing lids) shown on camera, and explicit disclosure when clips are sped up.
+  Their blogs discuss failures. This is what research-credible marketing looks like.
+- **Links**: [arXiv 2507.05331](https://arxiv.org/abs/2507.05331) · [project](https://toyotaresearchinstitute.github.io/lbm1/) · [BD blog](https://bostondynamics.com/blog/large-behavior-models-atlas-find-new-footing/)
+
+### Covariant → Amazon — RFM-1 (the cautionary consolidation)
+- **What they claim**: RFM-1 (Mar 2024) — an 8B multimodal "robotics foundation model,"
+  video-prediction world model + language interface, grounded in warehouse pick data.
+- **What happened**: Solid technical blog, no paper; then an Aug 2024 **reverse-acquihire** —
+  Amazon hired founders Pieter Abbeel, Peter Chen, Rocky Duan plus ~25% of staff and
+  non-exclusively licensed the models. The tech resurfaced in Amazon's Blue Jay multi-arm
+  system (Oct 2025). Lesson: at ~750,000 robots, Amazon's data advantage dwarfs any startup's.
+- **Demo style**: RFM-1's most effective asset was **action-conditioned video prediction
+  side-by-sides** (model imagines the outcome of a pick vs reality) — a world-model demo format
+  now widely copied.
+
+### Chinese ecosystem — AgiBot, Unitree, Galaxea, Xiaomi (brief)
+Far more *open* than US peers on average.
+- **AgiBot (Zhiyuan)**: GO-1 (Mar 2025) introduced the ViLLA (Vision-Language-Latent-Action)
+  framework with MoE, trained on **AgiBot World** — an open dataset of 1M+ trajectories from a
+  100-robot data factory. GO-2 (Apr 2026) adds "action chain-of-thought" + asynchronous
+  dual-system, reporting LIBERO 98.5%, sim-to-real 82.9%. Shipped >5,100 humanoids in 2025.
+- **Unitree**: hardware-first, but open-sourced **UnifoLM-WMA-0** (Sep 2025) — a
+  world-model-action architecture spanning multiple embodiments, usable as an interactive
+  simulator or as a policy-enhancing future-predictor; weights on HuggingFace, fine-tuned on
+  Open-X + five open Unitree datasets.
+- **Galaxea**: published an actual paper — Galaxea Open-World Dataset + G0 dual-system VLA
+  (arXiv 2509.00576) — with a **three-stage curriculum (cross-embodiment pretrain →
+  single-embodiment pretrain → task post-train)**, open code, and zero-shot numbers (82.5%
+  DROID, 98.9% LIBERO). This curriculum is a directly copyable recipe for this project.
+- **Cadence**: 13 new embodied models in June 2026 alone; Xiaomi open-sourced
+  Xiaomi-Robotics-1 (Aug 2026), pretrained on 100k+ hours of UMI data + 10k hours
+  cross-embodiment.
+- **Pattern**: cross-embodiment pretraining is standard practice and open weights + open
+  datasets are the competitive weapon (commoditize the brain, sell the hardware).
+
+### Dyna Robotics — DYNA-1 (task-first commercial wedge)
+- **What they claim**: "First commercial-ready robot foundation model" — master one economically
+  real task at a time (napkin folding for restaurants) at production reliability.
+- **What's published**: A decent research blog (no paper); the key disclosed idea is a
+  **foundation reward model in the loop** — automatic segmentation, progress estimation, and
+  subtask labeling of streaming robot experience enabling autonomous data collection. Headline:
+  **24-hour uninterrupted run, 850+ napkins, 99.4% success, zero interventions, ~60% of human
+  throughput**; week-by-week improvement (failing at 5 min in week 1 → 24 h in week 6);
+  transfer evidence (cup-filling learned with 0.7% of the flagship task's data).
+- **Demo style**: Invented the **"24-hour livestream" demo genre** — continuous 1× footage of a
+  full day of operation plus model-perspective camera views. An endurance format converts
+  "reliability" from a claimed number into a watchable fact.
+- **Links**: [DYNA-1](https://www.dyna.co/research/dyna-1)
+
+### Sunday Robotics — Memo + ACT-1
+- **What they claim**: Founded by **Tony Zhao and Cheng Chi** (first authors of ALOHA/ACT and
+  Diffusion Policy/UMI), Sunday exited stealth Nov 2025 with Memo, a wheeled home robot powered
+  by **ACT-1**, a "zero robot data" skill foundation model trained purely on human
+  demonstrations from a **$200 Skill Capture Glove** (~2,000 gloves in 500+ homes, ~10M
+  household episodes) — sidestepping $20k teleop rigs. Raised $165M Series B at $1.15B.
+- **Cross-embodiment angle**: An interesting inversion — human hand → robot gripper *is* the
+  embodiment gap, solved in the data pipeline rather than by multi-robot pretraining. Same
+  philosophical family as Generalist's wearable-first GEN-1.
+- **Demo style**: Long-horizon "table-to-dishwasher" run with 33 distinct dexterous
+  interactions, in-home (not lab), unseen environments. **The glove itself is a demo asset** —
+  showing the *data engine*, not just the robot, is now a differentiating move.
+
+### What actually impresses in demo videos
+
+Synthesized across the field — the formats that earn technical credibility rather than views.
+**This is the spec for this project's showcase videos.**
+
+- **One uncut, long-horizon take beats any montage.** Figure's 4-minute dishwasher run (61
+  actions, no cuts, no resets) and Atlas's "Spot Workshop" sequence are the most-cited demos of
+  the year precisely because they are single continuous shots.
+- **Explicit speed disclosure is a norm and a differentiator.** Generalist stamps "1×, not sped
+  up"; Boston Dynamics labels 1.5–2× clips. Undisclosed speedup reads as hiding something.
+- **Counted, consecutive repetitions turn reliability into a visual.** "1,800 consecutive
+  cycles," "86 folds in a row," "850 napkins in 24 h with zero interventions." An on-screen
+  counter is worth more than a claimed success percentage.
+- **Endurance formats (24-hour livestream) are the strongest robustness claim.**
+- **On-camera perturbations prove closed-loop control.** Shoving objects mid-task, amputating a
+  limb, moving items while the robot works — the cheapest way to show the policy isn't replaying
+  a trajectory.
+- **Teleop ambiguity is fatal.** State per-clip what is autonomous, what is teleoperated, and
+  what the human prompt was.
+- **Same weights, multiple robots / multiple sites is the generality proof.** Identical
+  checkpoints on two robots (Figure); zero-shot at an unseen customer site (Dyna);
+  held-out-embodiment tests (Skild). ← *directly the core demo of this project*
+- **Show the data engine, not just the robot.** t-SNE corpus flythroughs, the $200 glove, the
+  teleop rig — demos of the *pipeline* signal scalability to technical audiences.
+- **Model-perspective and world-model views add scientific texture.** Policy-camera views,
+  predicted-vs-real video side-by-sides.
+- **Admitting failure buys credibility.** Generalist's "not all tasks hit these rates" and TRI's
+  published nulls are repeatedly cited as reasons to trust the rest. A short failure reel costs
+  little and disarms skeptics.
+
+### Hiring-signal takeaways
+
+What these companies visibly reward in robotics research engineers.
+
+- **Data-engine engineering is the scarcest skill.** Collection hardware, auto-labeling,
+  segmentation/reward models, dataloaders at scale — more than architecture novelty.
+- **Rigorous evaluation is a differentiator, not overhead.** TRI built blind A/B, statistically
+  powered real-robot evals; Generalist leads with eval methodology. Being the person who can
+  *prove* a policy works (CIs, held-out sites, blind protocols) is a visible signal everywhere.
+- **VLA / diffusion / flow-matching fluency is table stakes.** The convergent recipe (VLM
+  backbone + high-rate action expert, flow/diffusion action heads, action chunking) appears
+  everywhere. Hands-on training *and deployment* end-to-end matters more than paper count.
+- **Hierarchy and real-time systems knowledge is back.** S0/S1/S2 stacks at 1 kHz/200 Hz/7 Hz,
+  onboard 5 Hz inference on embedded GPUs, async dual-systems — people who can budget latency,
+  quantize, and split models across embedded compute are prized.
+- **Whole-body control + learning crossover.** The 2026 frontier is loco-manipulation under one
+  policy; people bridging MPC/legged control with imitation/RL are the rarest hires.
+- **Sim-at-scale and world models are a parallel track.** Massive procedural sim, sim-to-real,
+  action-conditioned video models are a distinct hireable specialty.
+- **Demonstrated demo craft is itself a signal.** Engineers who can produce a credible uncut,
+  counted, perturbation-tested demo of their own work are shipping exactly the artifact these
+  teams ship. A portfolio with honest failure analysis mirrors the highest-status industrial
+  communication style.
+- **Track record of open, replicated recipes gets funded.** Sunday ($1.15B on ALOHA/Diffusion
+  Policy pedigree) and Galaxea (paper + open weights) show that shipping reproducible methods
+  the community adopts is the strongest individual credential in this market.
 
 ## 6. Datasets, benchmarks, simulators
 
