@@ -72,6 +72,19 @@ MUJOCO_GL=egl PYTHONPATH=. python -m unittest discover -s tests -v
 **MuJoCo must stay pinned to 3.3.7** — robosuite 1.5.2 calls `MjData.qM`, which was removed in
 MuJoCo 3.11.
 
+## Reading the research survey
+
+`research.md` renders as a styled page with a section rail and verification badges:
+
+```bash
+python tools/build_research_page.py        # regenerate after editing research.md
+python -m http.server 8765 --bind 127.0.0.1
+# open http://127.0.0.1:8765/research_page.html
+```
+
+Stop the server with `pkill -f "http.server 8765"`. GitHub also renders
+[research.md](research.md) directly, tables and all.
+
 ## Hardware
 
 NVIDIA DGX Spark: GB10, 128 GB unified memory, aarch64, sm_121, ~273 GB/s bandwidth. Memory is
