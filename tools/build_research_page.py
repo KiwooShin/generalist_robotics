@@ -210,6 +210,13 @@ body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif)
 /* masthead */
 .masthead{grid-column:1/-1;border-bottom:2px solid var(--ink);
   padding:52px 0 22px;margin-bottom:44px}
+.sitenav{display:flex;gap:2px;margin:0 0 26px;flex-wrap:wrap}
+.sitenav a{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;text-decoration:none;color:var(--muted);
+  border:1px solid var(--rule);background:var(--panel);padding:7px 13px}
+.sitenav a:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.sitenav a.here{color:var(--ground);background:var(--ink);border-color:var(--ink)}
+.sitenav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--muted);margin:0 0 14px}
 h1{font-family:var(--sans);font-weight:680;letter-spacing:-.025em;
@@ -300,46 +307,91 @@ td code{font-size:.9em}
 """
 
 
-def main():
-    md = open(SRC, encoding="utf-8").read()
-    # drop the H1 and the leading blockquote intro; we rebuild them as the masthead
+PAGES = [
+    {
+        "src": "research.md",
+        "out": "research_page.html",
+        "nav": "Survey",
+        "title": "Generalist Robotics — Research Survey",
+        "kicker": "Living survey · compiled 2026-08-09",
+        "headline": "Cross-embodiment robot policies",
+        "standfirst": "Can a policy pretrained on many robots adapt to a new robot far faster "
+                      "than training it from scratch &mdash; and how is that best achieved? "
+                      "A survey of the labs, models, datasets and mechanisms behind "
+                      "generalist robotics.",
+    },
+    {
+        "src": "supplement_research.md",
+        "out": "supplement_page.html",
+        "nav": "Method deep dives",
+        "title": "Generalist Robotics — Method Deep Dives",
+        "kicker": "Supplement · method deep dives",
+        "headline": "How the methods actually work",
+        "standfirst": "Companion to the survey. Where that file covers who built what, this one "
+                      "explains the mechanics &mdash; one topic at a time, with citations "
+                      "checked against primary sources.",
+    },
+]
+
+MD_TO_HTML = {page["src"]: page["out"] for page in PAGES}
+
+
+def rewrite_local_links(markup):
+    """Point links at sibling markdown files to their rendered HTML equivalents."""
+    for src, out in MD_TO_HTML.items():
+        markup = markup.replace(f'href="{src}"', f'href="{out}"')
+    return markup
+
+
+def build_site_nav(current):
+    """Return the cross-document navigation bar."""
+    links = []
+    for page in PAGES:
+        cls = ' class="here"' if page["out"] == current else ""
+        links.append(f'<a href="{page["out"]}"{cls}>{page["nav"]}</a>')
+    return '<div class="sitenav">' + "".join(links) + "</div>"
+
+
+def build_page(spec, root):
+    """Render one markdown file to a standalone HTML page. Returns bytes written."""
+    md = open(f"{root}/{spec['src']}", encoding="utf-8").read()
+    # the H1 is rebuilt as the masthead, so drop it from the body
     md = re.sub(r"^# .*?\n", "", md, count=1)
     body, toc = convert(md)
+    body = rewrite_local_links(body)
 
     nav_items = "".join(
         f'<li><a href="#{slug}"><span>{"§" + num if num else "·"}</span>'
         f'<span>{html.escape(label)}</span></a></li>'
         for num, label, slug in toc
     )
+    contents = f'<div class="navlabel">Contents</div><ol>{nav_items}</ol>' if toc else ""
 
     page = f"""<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generalist Robotics — Research Survey</title>
+<title>{spec['title']}</title>
 <style>{CSS}</style>
 <div class="shell">
   <header class="masthead">
-    <p class="kicker">Living survey · compiled 2026-08-09</p>
-    <h1>Cross-embodiment robot policies</h1>
-    <p class="standfirst">Can a policy pretrained on many robots adapt to a new robot far
-    faster than training it from scratch &mdash; and how is that best achieved? A survey of
-    the labs, models, datasets and mechanisms behind generalist robotics.</p>
-    <div class="meta">
-      <span class="chip"><b>9</b> sections</span>
-      <span class="chip"><b>60+</b> papers &amp; releases</span>
-      <span class="chip ok"><b>48</b> claims verified</span>
-      <span class="chip flag"><b>9</b> corrected · <b>2</b> refuted</span>
-      <span class="chip">DGX Spark &mdash; GB10 / aarch64</span>
-    </div>
+    {build_site_nav(spec['out'])}
+    <p class="kicker">{spec['kicker']}</p>
+    <h1>{spec['headline']}</h1>
+    <p class="standfirst">{spec['standfirst']}</p>
   </header>
-  <nav>
-    <div class="navlabel">Contents</div>
-    <ol>{nav_items}</ol>
-  </nav>
+  <nav>{contents}</nav>
   <main>{body}</main>
 </div>
 """
-    open(OUT, "w", encoding="utf-8").write(page)
-    print(f"wrote {OUT}  ({len(page)} bytes, {len(toc)} sections)")
+    out_path = f"{root}/{spec['out']}"
+    open(out_path, "w", encoding="utf-8").write(page)
+    return out_path, len(page), len(toc)
+
+
+def main():
+    root = "."
+    for spec in PAGES:
+        path, size, sections = build_page(spec, root)
+        print(f"wrote {path}  ({size} bytes, {sections} sections)")
 
 
 if __name__ == "__main__":
