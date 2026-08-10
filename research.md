@@ -7,6 +7,10 @@
 > Entry template: TL;DR / Key idea / Architecture & data / Results / Relevance to fast
 > cross-embodiment adaptation / Links.
 >
+> **Companion document:** [supplement_research.md](supplement_research.md) — method deep dives
+> explaining *how* the algorithms work (flow matching, action tokenization, embodiment
+> conditioning), as opposed to *who built what*.
+>
 > **Verification status (2026-08-09).** 59 high-risk claims — chiefly anything dated after
 > early 2026 — were put through an adversarial fact-check against primary sources:
 > **48 confirmed, 9 partly wrong (corrected in place), 2 refuted (removed)**. Corrections are
