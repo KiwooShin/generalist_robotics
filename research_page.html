@@ -44,6 +44,13 @@ body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--serif)
 /* masthead */
 .masthead{grid-column:1/-1;border-bottom:2px solid var(--ink);
   padding:52px 0 22px;margin-bottom:44px}
+.sitenav{display:flex;gap:2px;margin:0 0 26px;flex-wrap:wrap}
+.sitenav a{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+  text-transform:uppercase;text-decoration:none;color:var(--muted);
+  border:1px solid var(--rule);background:var(--panel);padding:7px 13px}
+.sitenav a:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.sitenav a.here{color:var(--ground);background:var(--ink);border-color:var(--ink)}
+.sitenav a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
   text-transform:uppercase;color:var(--muted);margin:0 0 14px}
 h1{font-family:var(--sans);font-weight:680;letter-spacing:-.025em;
@@ -134,24 +141,13 @@ td code{font-size:.9em}
 </style>
 <div class="shell">
   <header class="masthead">
+    <div class="sitenav"><a href="research_page.html" class="here">Survey</a><a href="supplement_page.html">Method deep dives</a></div>
     <p class="kicker">Living survey · compiled 2026-08-09</p>
     <h1>Cross-embodiment robot policies</h1>
-    <p class="standfirst">Can a policy pretrained on many robots adapt to a new robot far
-    faster than training it from scratch &mdash; and how is that best achieved? A survey of
-    the labs, models, datasets and mechanisms behind generalist robotics.</p>
-    <div class="meta">
-      <span class="chip"><b>9</b> sections</span>
-      <span class="chip"><b>60+</b> papers &amp; releases</span>
-      <span class="chip ok"><b>48</b> claims verified</span>
-      <span class="chip flag"><b>9</b> corrected · <b>2</b> refuted</span>
-      <span class="chip">DGX Spark &mdash; GB10 / aarch64</span>
-    </div>
+    <p class="standfirst">Can a policy pretrained on many robots adapt to a new robot far faster than training it from scratch &mdash; and how is that best achieved? A survey of the labs, models, datasets and mechanisms behind generalist robotics.</p>
   </header>
-  <nav>
-    <div class="navlabel">Contents</div>
-    <ol><li><a href="#0-field-map-read-this-first"><span>§0</span><span>Field map (read this first)</span></a></li><li><a href="#1-physical-intelligence-lineage"><span>§1</span><span>Physical Intelligence lineage</span></a></li><li><a href="#2-google-deepmind-lineage"><span>§2</span><span>Google DeepMind lineage</span></a></li><li><a href="#3-open-cross-embodiment-models"><span>§3</span><span>Open cross-embodiment models</span></a></li><li><a href="#4-morphology-aware-architectures-adaptation-techniques"><span>§4</span><span>Morphology-aware architectures &amp; adaptation techniques</span></a></li><li><a href="#5-industry-landscape"><span>§5</span><span>Industry landscape</span></a></li><li><a href="#6-datasets-benchmarks-simulators"><span>§6</span><span>Datasets, benchmarks, simulators</span></a></li><li><a href="#7-synthesis-implications-for-this-project"><span>§7</span><span>Synthesis — implications for this project</span></a></li><li><a href="#8-reading-queue"><span>§8</span><span>Reading queue</span></a></li></ol>
-  </nav>
-  <main><blockquote>Living survey of cross-embodiment / generalist robot policy research. Core question: <strong>can a policy pretrained on many robots adapt to a new robot far faster than training from scratch — and how is that best achieved?</strong>  Entry template: TL;DR / Key idea / Architecture &amp; data / Results / Relevance to fast cross-embodiment adaptation / Links.  <strong>Verification status (2026-08-09).</strong> 59 high-risk claims — chiefly anything dated after early 2026 — were put through an adversarial fact-check against primary sources: <strong>48 confirmed, 9 partly wrong (corrected in place), 2 refuted (removed)</strong>. Corrections are marked 🔧 and refutations ❌ where they matter. Two findings changed the project plan: ManiSkill3 <strong>cannot be installed on this DGX Spark</strong> (no aarch64 wheels for SAPIEN or mplib), and its supposed &quot;official cross-embodiment demo set&quot; <strong>does not exist</strong>. Claims not marked ✅ or 🔧 come from a single research pass and should be re-checked before being quoted.</blockquote>
+  <nav><div class="navlabel">Contents</div><ol><li><a href="#0-field-map-read-this-first"><span>§0</span><span>Field map (read this first)</span></a></li><li><a href="#1-physical-intelligence-lineage"><span>§1</span><span>Physical Intelligence lineage</span></a></li><li><a href="#2-google-deepmind-lineage"><span>§2</span><span>Google DeepMind lineage</span></a></li><li><a href="#3-open-cross-embodiment-models"><span>§3</span><span>Open cross-embodiment models</span></a></li><li><a href="#4-morphology-aware-architectures-adaptation-techniques"><span>§4</span><span>Morphology-aware architectures &amp; adaptation techniques</span></a></li><li><a href="#5-industry-landscape"><span>§5</span><span>Industry landscape</span></a></li><li><a href="#6-datasets-benchmarks-simulators"><span>§6</span><span>Datasets, benchmarks, simulators</span></a></li><li><a href="#7-synthesis-implications-for-this-project"><span>§7</span><span>Synthesis — implications for this project</span></a></li><li><a href="#8-reading-queue"><span>§8</span><span>Reading queue</span></a></li></ol></nav>
+  <main><blockquote>Living survey of cross-embodiment / generalist robot policy research. Core question: <strong>can a policy pretrained on many robots adapt to a new robot far faster than training from scratch — and how is that best achieved?</strong>  Entry template: TL;DR / Key idea / Architecture &amp; data / Results / Relevance to fast cross-embodiment adaptation / Links.  <strong>Companion document:</strong> <a href="supplement_page.html" target="_blank" rel="noopener">supplement_research.md</a> — method deep dives explaining <em>how</em> the algorithms work (flow matching, action tokenization, embodiment conditioning), as opposed to <em>who built what</em>.  <strong>Verification status (2026-08-09).</strong> 59 high-risk claims — chiefly anything dated after early 2026 — were put through an adversarial fact-check against primary sources: <strong>48 confirmed, 9 partly wrong (corrected in place), 2 refuted (removed)</strong>. Corrections are marked 🔧 and refutations ❌ where they matter. Two findings changed the project plan: ManiSkill3 <strong>cannot be installed on this DGX Spark</strong> (no aarch64 wheels for SAPIEN or mplib), and its supposed &quot;official cross-embodiment demo set&quot; <strong>does not exist</strong>. Claims not marked ✅ or 🔧 come from a single research pass and should be re-checked before being quoted.</blockquote>
 <h2 id="0-field-map-read-this-first"><span class="sec-num">§0</span><span class="sec-title">Field map (read this first)</span></h2>
 <p><strong>The one-paragraph version.</strong> Between 2022 and 2026 robot learning repeated the NLP playbook: first single-task policies, then one multi-task transformer (RT-1), then actions-as-tokens inside a web-pretrained VLM (RT-2), then pooled multi-robot data that provably helps every robot in the pool (RT-X / Open X-Embodiment). By 2025 the architecture had converged industry-wide. By 2026 the frontier is no longer &quot;can one model drive many bodies&quot; — it demonstrably can — but <strong>how cheaply a new body joins the club</strong>, and that cost has fallen from ~1,000 demonstrations to under 200 in three years.</p>
 <p><strong>The converged architecture.</strong> Nearly every serious 2025–26 system is the same shape: a pretrained VLM backbone (semantics, language, web knowledge) at low frequency, plus a small <strong>action expert</strong> — flow-matching or diffusion — emitting <strong>chunks</strong> of continuous actions at high frequency. π0/π0.5, GR00T N1.x, Gemini Robotics, RDT, SmolVLA, X-VLA, TRI/Boston Dynamics LBM, Figure&#x27;s Helix, 1X&#x27;s Redwood all instantiate it. The disagreements are about (a) how the action expert is coupled to the backbone (gradient flow — see Knowledge Insulation), (b) discrete tokens vs continuous chunks (FAST vs flow), and (c) how many tiers the hierarchy has (Figure&#x27;s S0/S1/S2 at 1 kHz/200 Hz/7 Hz is the extreme).</p>
