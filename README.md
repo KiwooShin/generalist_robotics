@@ -11,6 +11,7 @@ single DGX Spark, and adds a measurement the large labs cannot easily make.
 
 - **[plan.md](plan.md)** — paradigm, proposed stack, roadmap M0–M8, demo specification
 - **[research.md](research.md)** — living survey of generalist-robotics research (~1,500 lines)
+- **[supplement_research.md](supplement_research.md)** — method deep dives (how the algorithms work)
 - **[coding_rule.md](coding_rule.md)** — repo conventions
 - **[progress/](progress/)** — daily logs
 
