@@ -321,6 +321,16 @@ PAGES = [
                       "generalist robotics.",
     },
     {
+        "src": "project.md",
+        "out": "project_page.html",
+        "nav": "Direction",
+        "title": "Generalist Robotics — Project Direction",
+        "kicker": "Direction finding · adversarial gap search",
+        "headline": "Finding the unexplored gap",
+        "standfirst": "What has the 2026 state of the art not done, that one researcher with six "
+                      "simulated arms and a single DGX Spark could do well enough to matter?",
+    },
+    {
         "src": "supplement_research.md",
         "out": "supplement_page.html",
         "nav": "Method deep dives",

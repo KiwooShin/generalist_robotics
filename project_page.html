@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Generalist Robotics — Method Deep Dives</title>
+<title>Generalist Robotics — Project Direction</title>
 <style>
 :root{
   --ground:#F6F5F2; --panel:#FCFBF9; --ink:#191B1F; --ink-soft:#42464E;
@@ -141,18 +141,27 @@ td code{font-size:.9em}
 </style>
 <div class="shell">
   <header class="masthead">
-    <div class="sitenav"><a href="research_page.html">Survey</a><a href="project_page.html">Direction</a><a href="supplement_page.html" class="here">Method deep dives</a></div>
-    <p class="kicker">Supplement · method deep dives</p>
-    <h1>How the methods actually work</h1>
-    <p class="standfirst">Companion to the survey. Where that file covers who built what, this one explains the mechanics &mdash; one topic at a time, with citations checked against primary sources.</p>
+    <div class="sitenav"><a href="research_page.html">Survey</a><a href="project_page.html" class="here">Direction</a><a href="supplement_page.html">Method deep dives</a></div>
+    <p class="kicker">Direction finding · adversarial gap search</p>
+    <h1>Finding the unexplored gap</h1>
+    <p class="standfirst">What has the 2026 state of the art not done, that one researcher with six simulated arms and a single DGX Spark could do well enough to matter?</p>
   </header>
-  <nav><div class="navlabel">Contents</div><ol><li><a href="#index"><span>·</span><span>Index</span></a></li><li><a href="#1-flow-matching-for-robot-policies"><span>§1</span><span>Flow matching for robot policies</span></a></li><li><a href="#2-dctbpe-action-tokenization-fast"><span>§2</span><span>DCT+BPE action tokenization (FAST)</span></a></li></ol></nav>
-  <main><blockquote>Companion to <a href="research_page.html" target="_blank" rel="noopener">research.md</a>. Where <code>research.md</code> surveys <em>who built what</em>, this file explains <em>how the methods actually work</em> — the mechanics, the mathematics, and what you need to get right to implement them.  <strong>How this file grows:</strong> quote a phrase from <code>research.md</code> — &quot;flow matching&quot;, &quot;DCT+BPE action tokenizer&quot;, &quot;knowledge insulation&quot;, &quot;soft prompts&quot; — and it gets a deep dive here. Each entry is written to be sufficient for both implementing the method and being questioned on it. Mentions in <code>research.md</code> link forward to the relevant section here.  Same verification discipline as the main survey: every citation is adversarially checked against its primary source before it lands. Corrections are marked 🔧, removals ❌.</blockquote>
-<h2 id="index"><span class="sec-title">Index</span></h2>
-<p>1. <a href="#1-flow-matching-for-robot-policies" target="_blank" rel="noopener">Flow matching for robot policies</a> — <em>compiling</em> 2. <a href="#2-dctbpe-action-tokenization-fast" target="_blank" rel="noopener">DCT+BPE action tokenization (FAST)</a> — <em>compiling</em></p>
-<hr>
-<h2 id="1-flow-matching-for-robot-policies"><span class="sec-num">§1</span><span class="sec-title">Flow matching for robot policies</span></h2>
-<p><em>(research and citation verification running — this section is being compiled now)</em></p>
-<h2 id="2-dctbpe-action-tokenization-fast"><span class="sec-num">§2</span><span class="sec-title">DCT+BPE action tokenization (FAST)</span></h2>
-<p><em>(research and citation verification running — this section is being compiled now)</em></p></main>
+  <nav><div class="navlabel">Contents</div><ol><li><a href="#the-question-this-file-answers"><span>·</span><span>The question this file answers</span></a></li><li><a href="#the-candidate-idea-under-test"><span>·</span><span>The candidate idea under test</span></a></li><li><a href="#method"><span>·</span><span>Method</span></a></li><li><a href="#results"><span>·</span><span>Results</span></a></li><li><a href="#decision"><span>·</span><span>Decision</span></a></li></ol></nav>
+  <main><blockquote><strong>Purpose.</strong> <code>research.md</code> maps what the field has done. <code>supplement_research.md</code> explains how the methods work. <strong>This file decides what <em>we</em> do</strong> — specifically, which research direction is both genuinely unexplored and executable on one DGX Spark.  Status: literature mapping and gap-refutation in progress (started 2026-08-09).</blockquote>
+<h2 id="the-question-this-file-answers"><span class="sec-title">The question this file answers</span></h2>
+<blockquote>What has the 2026 state of the art <em>not</em> done, that a single researcher with six simulated arms and one DGX Spark could do well enough to be worth a frontier lab&#x27;s attention?</blockquote>
+<h2 id="the-candidate-idea-under-test"><span class="sec-title">The candidate idea under test</span></h2>
+<p><strong>The &quot;understanding phase&quot; (working title: Handshake).</strong> When a new robot arrives, don&#x27;t collect task demonstrations. Instead issue probe commands through a vision-language model — <em>&quot;move the end-effector left by 0.1 m&quot;</em> — observe the realized motion, and build a calibration between the command vocabulary and that robot&#x27;s behaviour. After a handful of probes, a shared language-command policy drives the new body with no per-robot policy training.</p>
+<p>Its appeal is that it changes the headline metric. Instead of <em>success versus demonstrations</em> — the axis the entire field already reports, where we would be competing with Octo&#x27;s ~100 and Gemini On-Device 2&#x27;s &lt;200 — it becomes <strong>success versus number of probe actions</strong>. Probes cost seconds; demonstrations cost hours.</p>
+<h3 id="the-known-objection-stated-up-front">The known objection, stated up front</h3>
+<p>For pure end-effector motion the calibration may be close to free, and therefore close to trivial. Verified on this machine: robosuite&#x27;s operational-space controller already exposes a uniform 7-dim delta-EEF action across Panda, Sawyer, IIWA, Kinova3, UR5e and Jaco, despite UR5e having 6 joints and the others 7. &quot;Move left 0.1 m&quot; <em>already</em> means the same thing on all of them, because the controller and URDF absorbed the difference — so probing would rediscover what inverse kinematics gives analytically.</p>
+<p>The version that earns its keep must therefore target <strong>what is not in the URDF</strong>: reachable workspace boundaries and singularities, gripper strength and friction, payload effects, controller latency and gains, backlash, overshoot under fast commands. Whether that reframing is novel is exactly what the literature search is testing.</p>
+<h2 id="method"><span class="sec-title">Method</span></h2>
+<p>Deliberately adversarial, because &quot;nobody has done X&quot; is the easiest claim in research to get wrong:</p>
+<p>1. <strong>Map</strong> — six agents cover distinct slices of prior art: probe-then-act lineage (RMA, PEARL, hardware-conditioned policies, robot self-modeling, motor babbling); in-context and training-free VLA adaptation; active exploration and optimal experiment design; 2026 SOTA in new-embodiment adaptation; language grounding in robot capability; benchmarks and adjacent fields (adaptive control, classical calibration, sim-to-real online system ID). 2. <strong>Synthesize</strong> — propose 6–8 candidate directions, each stated precisely enough that a single paper could refute it. 3. <strong>Refute</strong> — one adversarial agent per direction, whose job is to <em>find the paper that already did it</em>. A direction survives only if a determined search failed to kill it.</p>
+<p>Special attention goes to <strong>limitations and future-work sections</strong> of recent papers, since that is where the field advertises its own open problems.</p>
+<h2 id="results"><span class="sec-title">Results</span></h2>
+<p><em>(pending — the run is in progress)</em></p>
+<h2 id="decision"><span class="sec-title">Decision</span></h2>
+<p><em>(pending)</em></p></main>
 </div>
