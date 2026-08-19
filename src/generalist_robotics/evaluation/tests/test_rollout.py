@@ -569,6 +569,26 @@ class PlaygroundIntegrationTest(unittest.TestCase):
         """Control steps the shared rollout stayed alive for."""
         return round(self.stats.survived_fraction * self.HORIZON)
 
+    def done_trace(self) -> jax.Array:
+        """The env's raw done signal over the shared horizon, from the same reset."""
+        policy = self.zero_policy()
+
+        def step(state, _):
+            next_state = self.env.step(state, policy(state.obs))
+            return next_state, next_state.done
+
+        rng = jax.random.split(jax.random.PRNGKey(0), 1)[0]
+        _, done = jax.lax.scan(step, self.env.reset(rng), None, length=self.HORIZON)
+        return done
+
+    def test_the_terminating_step_is_counted_inclusively(self):
+        # Measure the fall independently of the harness and check the count against it,
+        # which pins the inclusive convention without hard coding the physics.
+        done = self.done_trace()
+        first_done = int(jnp.argmax(done > 0.5))
+        self.assertGreater(float(done[first_done]), 0.5)
+        self.assertEqual(self.alive_steps(), first_done + 1)
+
     def test_the_robot_really_terminates_inside_the_horizon(self):
         self.assertLess(self.stats.survived_fraction, 1.0)
         self.assertGreater(self.stats.survived_fraction, 0.0)
