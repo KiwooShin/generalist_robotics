@@ -9,6 +9,26 @@ import numpy as np
 # MuJoCo treats magnitudes at or above mjMAXVAL as infinite; scaling must not overflow it.
 MAX_MODEL_VALUE = mujoco.mjMAXVAL
 
+# Power of length in the gravitational time scale sqrt(length / gravity): with gravity
+# fixed, a robot k times longer runs sqrt(k) times slower. Every rate follows from it.
+TIME_LENGTH_POWER = 0.5
+
+# Similarity bookkeeping, writing s = size_scale, m = mass_scale, t = torque_scale and p
+# for the power of length in a degree of freedom's generalized inertia (2 for rotation,
+# 0 for translation; see dof_inertia_length_power). Its coordinate scales as s**(1 - p/2),
+# so with time as above:
+#   generalized inertia   m * s**p
+#   generalized force     m * s**(p/2)        inertia * coordinate / time**2
+#   damping coefficient   m * s**(p - 0.5)    force / (coordinate / time)
+#   spring stiffness      m * s**(p - 1)      force / coordinate
+# Actuator strength is the torque axis rather than a consequence of geometry, so an
+# actuator's generalized force scales as t alone and its gains only convert t into the
+# units of the signal they multiply: t * s**-c for a position gain and t * s**(0.5 - c)
+# for a velocity gain, where c = 1 - p/2 is the power of length in the coordinate driven.
+# At dynamic similarity (m = s**3, t = s**4) this reproduces the textbook exponents for a
+# hinge: torque s**4, position gain s**4, velocity gain and joint damping s**4.5, dry
+# friction s**4 - and it keeps the size, mass and torque axes from double counting s**4.
+
 # Fields whose entries are plain lengths, scaled by size_scale.
 LENGTH_FIELDS = (
     "body_pos",
@@ -44,6 +64,27 @@ LENGTH_FIELDS = (
 # Axis-aligned bounding boxes: lengths that may already sit at the infinity sentinel.
 BOUNDING_BOX_FIELDS = ("geom_aabb", "bvh_aabb", "oct_aabb")
 
+# Constraint solver references whose first entry is a time constant while it is positive.
+SOLVER_REFERENCE_FIELDS = (
+    "geom_solref",
+    "pair_solref",
+    "pair_solreffriction",
+    "jnt_solref",
+    "dof_solref",
+    "eq_solref",
+    "tendon_solref_lim",
+    "tendon_solref_fri",
+)
+
+# Solver impedances whose width entry is a distance measured along a length: contacts,
+# explicit geom pairs and tendons.
+LENGTH_IMPEDANCE_FIELDS = (
+    "geom_solimp",
+    "pair_solimp",
+    "tendon_solimp_lim",
+    "tendon_solimp_fri",
+)
+
 
 @dataclasses.dataclass(frozen=True)
 class MorphParams:
@@ -56,7 +97,9 @@ class MorphParams:
     Attributes:
         size_scale: factor k applied to every length in the model.
         mass_scale: factor applied to body masses; inertia follows mass * size**2.
-        torque_scale: factor applied to actuator torque limits.
+        torque_scale: factor applied to actuator strength, meaning both the servo gains
+            and the torque limits, so that a stronger actuator is stiffer as well as
+            higher limit and the axis moves the realised dynamics in both directions.
     """
 
     size_scale: float = 1.0
@@ -82,7 +125,7 @@ def similar_torque_scale(size_scale: float) -> float:
 
 def similar_time_scale(size_scale: float) -> float:
     """Return the gait-period factor under dynamic similarity in fixed gravity."""
-    return float(size_scale) ** 0.5
+    return float(size_scale) ** TIME_LENGTH_POWER
 
 
 def dynamic_similarity_params(size_scale: float) -> MorphParams:
@@ -157,6 +200,43 @@ def actuator_inertia_length_power(model: mujoco.MjModel) -> np.ndarray:
     return powers
 
 
+def actuator_coordinate_length_power(model: mujoco.MjModel) -> np.ndarray:
+    """Return, per actuator, the power of length in the coordinate its transmission drives.
+
+    A hinge angle is dimensionless, while slide travel and tendon length are lengths.
+    """
+    powers = np.zeros(model.nu)
+    joint_transmissions = (mujoco.mjtTrn.mjTRN_JOINT, mujoco.mjtTrn.mjTRN_JOINTINPARENT)
+    for actuator in range(model.nu):
+        transmission = model.actuator_trntype[actuator]
+        if transmission == mujoco.mjtTrn.mjTRN_TENDON:
+            powers[actuator] = 1.0
+        elif transmission in joint_transmissions:
+            joint = int(model.actuator_trnid[actuator, 0])
+            if model.jnt_type[joint] == mujoco.mjtJoint.mjJNT_SLIDE:
+                powers[actuator] = 1.0
+    return powers
+
+
+def position_servo_actuators(model: mujoco.MjModel) -> np.ndarray:
+    """Return a mask of actuators whose gain multiplies a configuration.
+
+    MuJoCo's affine bias is biasprm[0] + biasprm[1] * length + biasprm[2] * velocity, and
+    MuJoCo's position, intvelocity and damped general actuators are exactly those that
+    feed back length, so a non-zero biasprm[1] identifies a position gain.
+    """
+    return (model.actuator_biastype == mujoco.mjtBias.mjBIAS_AFFINE) & (
+        model.actuator_biasprm[:, 1] != 0.0
+    )
+
+
+def velocity_servo_actuators(model: mujoco.MjModel) -> np.ndarray:
+    """Return a mask of affine-bias actuators whose gain multiplies a velocity."""
+    return (model.actuator_biastype == mujoco.mjtBias.mjBIAS_AFFINE) & (
+        model.actuator_biasprm[:, 1] == 0.0
+    )
+
+
 def length_commanded_actuators(model: mujoco.MjModel) -> np.ndarray:
     """Return a mask of actuators whose control signal is a length rather than an angle."""
     mask = np.zeros(model.nu, dtype=bool)
@@ -185,7 +265,8 @@ def scale_lengths(model: mujoco.MjModel, size_scale: float) -> None:
 
     Includes mesh vertices, without which mesh-based robots keep their original
     extent no matter what geom_size says, and the cached bounding volumes that
-    MuJoCo uses for broad-phase collision.
+    MuJoCo uses for broad-phase collision, plus the dimensional constants of the
+    constraint solver, without which contacts would not be similar.
     """
     for name in LENGTH_FIELDS:
         field = getattr(model, name, None)
@@ -212,9 +293,46 @@ def scale_lengths(model: mujoco.MjModel, size_scale: float) -> None:
         model.actuator_ctrlrange[commanded] *= size_scale
         model.actuator_actrange[commanded] *= size_scale
 
+    scale_constraint_solver(model, size_scale)
+
     model.stat.extent *= size_scale
     model.stat.meansize *= size_scale
     model.stat.center *= size_scale
+
+
+def scale_constraint_solver(model: mujoco.MjModel, size_scale: float) -> None:
+    """Scale the dimensional constants of the soft-constraint model, in place.
+
+    The model is inertia normalised, so the only quantities in it that carry units are the
+    solref time constant, which follows the robot's gravitational clock, and the solimp
+    width, which is a distance along the constraint's own coordinate: a length for a
+    contact or a tendon, and the joint coordinate for a joint limit or dry friction. A
+    negative solref pair states stiffness and damping directly and is left alone, since no
+    robot in this study authors one. So are the equality impedances, whose residual mixes
+    lengths and angles.
+    """
+    time_scale = size_scale**TIME_LENGTH_POWER
+    for name in SOLVER_REFERENCE_FIELDS:
+        field = getattr(model, name, None)
+        if field is not None and field.size:
+            column = field[:, 0]
+            np.multiply(column, time_scale, out=column, where=column > 0.0)
+    for name in LENGTH_IMPEDANCE_FIELDS:
+        field = getattr(model, name, None)
+        if field is not None and field.size:
+            field[:, 2] *= size_scale
+
+    coordinate = 1.0 - dof_inertia_length_power(model) / 2.0
+    if model.nv:
+        model.dof_solimp[:, 2] *= size_scale**coordinate
+    if model.njnt:
+        model.jnt_solimp[:, 2] *= size_scale ** coordinate[model.jnt_dofadr]
+
+    override = model.opt.o_solref
+    if override[0] > 0.0:
+        override[0] *= time_scale
+    model.opt.o_solimp[2] *= size_scale
+    model.opt.o_margin *= size_scale
 
 
 def scale_masses(model: mujoco.MjModel, mass_scale: float, size_scale: float) -> None:
@@ -230,16 +348,59 @@ def scale_masses(model: mujoco.MjModel, mass_scale: float, size_scale: float) ->
         model.actuator_armature *= mass_scale * size_scale ** actuator_inertia_length_power(model)
 
 
-def scale_torques(model: mujoco.MjModel, torque_scale: float) -> None:
-    """Scale the actuator torque limits of a model in place.
+def scale_passive_joints(model: mujoco.MjModel, mass_scale: float, size_scale: float) -> None:
+    """Scale the passive joint properties that carry mass and length, in place.
+
+    Joint damping, dry friction and springs belong to the mechanism rather than to the
+    motors, so they follow the size and mass axes and never the torque axis. Leaving
+    them fixed is what makes a nominally similar robot behave like a different machine:
+    at size k its inertia grows as mass * k**2 while a fixed damping coefficient loses
+    k**4.5 of relative authority.
+    """
+    power = dof_inertia_length_power(model)
+    model.dof_damping *= mass_scale * size_scale ** (power - TIME_LENGTH_POWER)
+    model.dof_frictionloss *= mass_scale * size_scale ** (power / 2.0)
+    model.jnt_stiffness *= mass_scale * size_scale ** (power[model.jnt_dofadr] - 1.0)
+    if model.ntendon:
+        # A tendon coordinate is a length, which is the p = 0 column of the table above.
+        model.tendon_stiffness *= mass_scale / size_scale
+        model.tendon_damping *= mass_scale / size_scale**TIME_LENGTH_POWER
+        model.tendon_frictionloss *= mass_scale
+
+
+def scale_actuator_gains(model: mujoco.MjModel, torque_scale: float, size_scale: float) -> None:
+    """Scale servo gains onto the scaled robot's force and clock, in place.
+
+    A gain turns the signal it multiplies into a generalized force, so it carries the
+    actuation-strength factor and, on top of that, only the unit conversion of its
+    signal: a position gain is divided by the coordinate the transmission drives, and a
+    velocity gain by that coordinate per unit of the robot's gravitational time scale.
+    """
+    coordinate = actuator_coordinate_length_power(model)
+    position_gain = torque_scale * size_scale ** (-coordinate)
+    velocity_gain = torque_scale * size_scale ** (TIME_LENGTH_POWER - coordinate)
+
+    position = position_servo_actuators(model)
+    velocity = velocity_servo_actuators(model)
+    model.actuator_gainprm[position, 0] *= position_gain[position]
+    model.actuator_gainprm[velocity, 0] *= velocity_gain[velocity]
+
+    affine = position | velocity
+    model.actuator_biasprm[affine, 0] *= torque_scale
+    model.actuator_biasprm[affine, 1] *= position_gain[affine]
+    model.actuator_biasprm[affine, 2] *= velocity_gain[affine]
+
+
+def scale_torques(model: mujoco.MjModel, torque_scale: float, size_scale: float) -> None:
+    """Scale actuator strength, meaning both the servo gains and the torque limits, in place.
 
     Two different fields carry the limit depending on how the robot was authored:
     actuator_forcerange on the actuator, and jnt_actfrcrange on the joint. The
     MuJoCo Playground humanoids use the joint-level one, so scaling only the
-    actuator field would leave their torque budget untouched. An actuator that
-    declares no limit in either field has no torque budget to scale and is
-    unaffected; only its servo gain would bound it, and gain is a stiffness axis
-    rather than a morphology axis.
+    actuator field would leave their torque budget untouched. Scaling limits alone is
+    just as inert in the other direction: a position servo realises kp * (target - q),
+    which for these robots sits far below the limit, so a torque_scale that moves only
+    the limit changes nothing above the point where the limit stops binding.
 
     actuator_gear is deliberately left alone. For the joint transmissions these
     robots use it is the joint-to-actuator ratio, so scaling it would rescale the
@@ -250,6 +411,7 @@ def scale_torques(model: mujoco.MjModel, torque_scale: float) -> None:
     commanded = force_commanded_actuators(model)
     if commanded.any():
         model.actuator_ctrlrange[commanded] *= torque_scale
+    scale_actuator_gains(model, torque_scale, size_scale)
 
 
 def refresh_derived_constants(model: mujoco.MjModel) -> None:
@@ -273,9 +435,15 @@ def refresh_derived_constants(model: mujoco.MjModel) -> None:
 def apply_morphology(model: mujoco.MjModel, params: MorphParams) -> mujoco.MjModel:
     """Return a new model scaled by the given morphology factors.
 
-    The input model is left untouched. Joint damping and dry friction are not
-    scaled: they are separate actuation axes of this study, not consequences of
-    geometry.
+    The input model is left untouched. The three axes are kept disjoint so that no
+    quantity is scaled twice: geometry and inertia follow size and mass, the passive
+    joint damping, dry friction and springs follow size and mass because they are
+    properties of the mechanism, and everything the motors contribute - the servo gains
+    and the torque limits - follows the torque axis, with the size axis adding only the
+    sqrt(size) clock factor that converts a force gain into a velocity gain.
+    dynamic_similarity_params therefore lands on the similar robot exactly once: its
+    torque_scale of k**4 is the actuator factor similarity asks for, while mass and size
+    deliver the k**4.5 damping and k**4 dry friction.
 
     Args:
         model: base robot model.
@@ -289,8 +457,9 @@ def apply_morphology(model: mujoco.MjModel, params: MorphParams) -> mujoco.MjMod
         scale_lengths(scaled, params.size_scale)
     if params.mass_scale != 1.0 or params.size_scale != 1.0:
         scale_masses(scaled, params.mass_scale, params.size_scale)
-    if params.torque_scale != 1.0:
-        scale_torques(scaled, params.torque_scale)
+        scale_passive_joints(scaled, params.mass_scale, params.size_scale)
+    if params.torque_scale != 1.0 or params.size_scale != 1.0:
+        scale_torques(scaled, params.torque_scale, params.size_scale)
     refresh_derived_constants(scaled)
     return scaled
 
