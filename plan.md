@@ -1,135 +1,95 @@
 # Generalist Robotics — Project Plan
 
 **Repo:** https://github.com/KiwooShin/generalist_robotics
-**Started:** 2026-08-09
+**Direction locked:** 2026-08-09 — see [project.md](project.md) for how it was chosen.
 
-> **Status: this plan is a recommendation, not a settled decision.** The stack in §3 and the
-> contribution in §4 follow from the survey in `research.md`, and the simulator has been verified
-> running on the Spark — but the direction is yours to choose after reading the research. Nothing
-> beyond stack verification has been built.
+> The earlier manipulation-focused plan is archived at
+> [archive/plan_manipulation_superseded.md](archive/plan_manipulation_superseded.md).
 
-## 1. The paradigm
+## Goal
 
-Train **one policy across many robot embodiments**, then adapt it to a **new, unseen robot** with
-a fraction of the data and compute needed to train from scratch.
+Transfer a legged locomotion policy between robots of **different shape and different forces** by
+walking it along a *continuous path through morphology space*, fine-tuning only when it fails —
+rather than transferring in one jump.
 
-```
-                 ┌─────────────────────────────┐
-  Panda demos ───┤                             │
-  Sawyer demos ──┤   Cross-embodiment          │──► few demos ──► UR5e   (near transfer)
-  IIWA demos ────┤   pre-training              │──► few demos ──► SO-101 (far transfer)
-  Kinova demos ──┤   (one generalist policy)   │
-                 └─────────────────────────────┘
-       vs. baseline: train the new arm from scratch (far more data + time)
-```
+This is **numerical continuation** (homotopy) applied to policies, and simultaneously a self-paced
+curriculum over morphology where "does it still walk" is the pacing signal.
 
-This is the central bet of Physical Intelligence (π0.5, π0.7), DeepMind (Gemini Robotics 1.5's
-Motion Transfer), NVIDIA GR00T, Skild, and Generalist AI. The project reproduces the core
-phenomenon — **positive transfer across embodiments plus fast adaptation** — at a scale that fits
-one DGX Spark, with a contribution the big labs cannot easily make (§4), and headline demo videos.
+Explicitly a learning-and-demo project. The publishable angle is secondary; the artifact,
+the understanding, and the demo videos are the point.
 
-**The one number that motivates everything** (`research.md` §0): the same <200-demo recipe took
-the SO-101 arm to 6.7% success with Gemini On-Device 1 and 53.3% with On-Device 2. *Adaptation
-efficiency is a property of the pre-trained prior, not the fine-tuning procedure.*
+**Out of scope this version:** probing/system-identification, sensor-space continuation, language
+interfaces. **Deferred:** hand-only manipulation policy with continuation over finger geometry.
 
-## 2. Two deliverables
+## The result worth aiming at
 
-1. **Showcase** — demo videos (README GIFs per milestone + a full video) proving the paradigm:
-   one brain driving many bodies, and a new robot learned in hours. Audience: frontier AI labs
-   and robotics companies hiring research engineers.
-2. **Learning** — `research.md`: a living, deep survey, maintained as new work appears.
+> Find a target morphology where **direct RL training fails but continuation from an ancestor
+> succeeds.**
 
-## 3. Proposed stack (M0) — pending review
+That reframes continuation from "a cheaper route" to "a route to otherwise-unreachable policies",
+and needs no cluster.
 
-| Decision | Choice |
+## Verified stack (hands-on, on the DGX Spark)
+
+| Component | Status |
 |---|---|
-| Simulator | **robosuite 1.5.2 + MimicGen + robomimic** (MuJoCo) — ✅ verified on the Spark, 36/36 task×arm combos run |
-| Scale-up option | ❌ ManiSkill3 ruled out — no aarch64 wheels for SAPIEN or mplib. Fallback if rollouts bottleneck: **MuJoCo Playground / MJX** (JAX, aarch64-native) |
-| Training arms | Panda, Sawyer, IIWA, Kinova Gen3 (same gripper class) |
-| Held-out (near) | UR5e — "interpolation" |
-| Held-out (far) | SO-101 via MuJoCo Menagerie — "extrapolation", 5-DoF |
-| Tasks | Lift, Stack, PickPlace-Can, NutAssembly-Square, Door, ToolHang (verify per-arm reachability) |
-| Data | ~10 source demos/task → MimicGen-regenerate ~1,000 per (task, arm); held-out adaptation sets {5,10,25,50,100,300} |
-| Format | **LeRobotDataset v3** (so π0/GR00T/SmolVLA/X-VLA/ACT all train on our data unchanged) |
-| Action head | OpenVLA-OFT recipe: parallel decoding, action chunking, continuous actions, L1/flow |
-| Policy A (ours) | HPT-style per-embodiment stems + shared trunk, ~50–200M — full training on Spark |
-| Policy B (pretrained) | **X-VLA-0.9B** primary · SmolVLA-450M fallback · GR00T N1.5 if we want NVIDIA's supported pipeline |
+| JAX + CUDA on aarch64 | ✅ `jax 0.10.2`, backend `gpu`, `CudaDevice(id=0)` |
+| MJX throughput | ✅ 4.6M steps/s @ 4,096 envs |
+| MuJoCo Warp | ✅ `cuda:0`, GB10, sm_121 |
+| MuJoCo Playground | ✅ 19 locomotion envs |
 
-Rationale for every row is in `research.md` §7.2.
+⚠️ PyPI distribution is **`playground`**, imported as `mujoco_playground`.
 
-## 4. The distinctive contribution
+## Robot ladder (measured from the models)
 
-A pure reproduction is a weak portfolio piece. Simulation makes possible what no real-robot lab
-can run: **decomposing the embodiment gap into its visual and kinematic components** by rendering
-arm A's appearance while executing arm B's kinematics, in a 2×2 factorial. This answers a question
-the field currently hand-waves — *when a policy fails on a new robot, is it because the robot
-looks different or moves differently?*
+| Robot | env | actuators | mass (kg) | height (m) |
+|---|---|---:|---:|---:|
+| Robotis OP3 | `Op3Joystick` | 20 | 3.1 | 0.244 |
+| **Berkeley Humanoid** | `BerkeleyHumanoidJoystickFlatTerrain` | **12** | 16.1 | 0.515 |
+| Booster T1 | `T1JoystickFlatTerrain` | 23 | 31.6 | 0.665 |
+| Unitree G1 | `G1JoystickFlatTerrain` | 29 | 33.3 | 0.785 |
+| Unitree H1 | `H1JoystickGaitTracking` | 19 | 51.4 | 0.970 |
+| Apptronik Apollo | `ApolloJoystickFlatTerrain` | 32 | 80.9 | 1.080 |
 
-Secondary angles: the delta-EEF vs padded-joint-space interface ablation; a head-to-head of the
-four embodiment-conditioning families (none / ID token / per-arm stems / soft prompts) at matched
-scale, which nobody has published; and kinematic-graph morphology encoding for manipulation, which
-is mature in locomotion RL and nearly absent from manipulation VLAs.
+Berkeley Humanoid is the starting robot: fewest actuators, cheapest to train.
 
-## 5. Roadmap
+## Milestones
 
-- **M0 — Survey & design lock.** ✅ `research.md` v1 (§0–§8); stack chosen. Remaining: verify the
-  2026-era claims, confirm robosuite multi-arm behavior hands-on, smoke-test MuJoCo on the Spark.
-- **M1 — Multi-embodiment task suite.** robosuite tasks running on all 6 arms behind one unified
-  obs/action interface; per-arm reachability audit; scripted/teleop source demos.
-  *Demo: grid video of all 6 arms doing all tasks.*
-- **M2 — Data engine.** MimicGen regeneration per (task, arm), export to LeRobotDataset v3,
-  per-embodiment normalization statistics handled correctly from day one.
-  *Demo: one source demo fanning out into five arms' trajectories.*
-- **M3 — Per-arm baselines from scratch.** Establishes the from-scratch cost curve every later
-  claim is measured against.
-- **M4 — Cross-embodiment pre-training.** One policy across the 4 training arms with embodiment
-  conditioning; show no regression vs per-arm baselines, plus positive transfer.
-  *Demo: "one brain, many bodies" — identical weights, 4 arms, simultaneous.*
-- **M5 — Headline: fast adaptation to held-out arms.** Success-vs-demos and success-vs-GPU-hours
-  curves for pretrained-on-4 vs pretrained-on-1 vs from-scratch, on UR5e and SO-101.
-  *Demo: split-screen learning race with live success counters + animated curves.*
-- **M6 — Gap decomposition + conditioning ablation.** The distinctive contribution (§4).
-  *Demo: 2×2 factorial visualization.*
-- **M7 — Scale up with an open VLA.** LoRA/full fine-tune X-VLA (or SmolVLA) on the same suite;
-  compare few-shot adaptation against our small model. Language-conditioned demos.
-- **M8 — Showcase polish.** README with per-milestone GIFs, full demo video, results write-up,
-  optional project page.
+### M1 — Self-morphing continuation (fixed topology) ← **current**
 
-Every milestone ends with a pushed demo video/GIF in the README.
+Parametric morphing of one robot: independent **size**, **mass** and **torque** scales. Train a
+baseline policy, then map where it survives and walk it through morphology space.
 
-## 6. Demo video specification
+Deliverables:
+1. `morphology.py` — apply (size, mass, torque) scaling to a MuJoCo model, inertia-consistent.
+2. `evaluation.py` — roll out a policy on a morphed model, return survival/velocity/distance.
+3. `training.py` — PPO training and fine-tuning on a morphed env, with checkpointing.
+4. `continuation.py` — step along a morphology path, test, fine-tune on failure, log the cost.
+5. `viability.py` — 2-D sweep (size × torque) producing the **viability map**.
+6. Demo: morph timelapse video + viability map figure.
 
-Formats that earn technical credibility (derived from the field survey, `research.md` §5):
-- **One brain, many bodies** — identical weights, N arms, one grid, one take.
-- **Learning race** — split screen, pretrained-adapted vs from-scratch, live success counter.
-- **Counted repetitions** — on-screen counters beat claimed percentages.
-- **Perturbation reel** — objects shoved mid-episode, on camera, uncut.
-- **Failure reel** — short and honest; buys more credibility than it costs.
-- **Data-engine shot** — MimicGen fanning one demo across five arms.
+**Headline artifact — the viability map.** Physics predicts a *ridge of cheap transfer* along the
+dynamic-similarity manifold (torque ∝ k⁴, time ∝ √k). Confirming that ridge is a result that
+predicts a physical law rather than merely reporting a success rate.
 
-Non-negotiable norms: label real-time vs sped-up on every clip; prefer uncut takes; state the demo
-count and seed behind every number shown.
+Baselines M1 must report: from-scratch RL at the target, one-jump fine-tune, and **domain
+randomization spanning the whole interval** (the honest baseline, most likely to win). Report total
+env-steps and wall-clock **along the entire path**, not just the final step.
 
-## 7. Hardware & constraints
+### M2 — Cross-robot continuation
+Berkeley → T1 → G1 → H1 → Apollo. Needs DoF changes, handled by annealing joint stiffness (a joint
+locked at high stiffness is effectively absent; annealing it down grows a DoF continuously).
 
-**DGX Spark**: GB10, 128 GB unified memory, ARM (aarch64), sm_121, ~273 GB/s bandwidth.
-- Memory is the advantage — it fits full fine-tunes that normally need an A100-80GB.
-- Bandwidth is the constraint — roughly 7× below A100/H100, so wall-clock scales sharply with
-  parameter count. Sub-1B is where research loops stay fast.
-- ARM is the risk — prefer NVIDIA NGC containers over generic pip wheels; verify aarch64 builds
-  early for anything with compiled CUDA extensions (SAPIEN, flash-attn, jaxlib).
-- Pure MuJoCo is the safe path and runs natively.
+### M3 — Topology: growing legs
+2 → 3 → 4 legs. Add a limb with near-zero mass and locked joints, anneal mass up and stiffness
+down. Biped→quadruped *must* cross a gait bifurcation, making this both the best demo and the most
+interesting science.
 
-## 8. Success criteria
+### M4 — Showcase
+Morph timelapse, growing-leg reel, the ladder, animated viability map, failure reel. Norms: label
+real-time vs sped-up, prefer uncut takes, state seeds and step counts.
 
-1. A cross-embodiment pretrained policy adapts to a held-out arm with **≥5–10× fewer demos** (or
-   GPU-hours) than from-scratch at matched success — with the pretrained-on-one-arm control
-   included, so the claim is about *multi-embodiment* pretraining specifically.
-2. The visual/kinematic gap decomposition produces a clear, defensible finding.
-3. README demo videos good enough to lead a job-application portfolio.
-4. `research.md` deep enough to answer interview questions on any major paper in the field.
+## Conventions
 
-## 9. Conventions
-
-Code style and repo rules: `coding_rule.md`. Daily logs: `progress/YYYY-MM-DD.md`.
-Research notes: `research.md`. Commit per change and push.
+Code style: [coding_rule.md](coding_rule.md). Daily logs: `progress/YYYY-MM-DD.md`. Research:
+[research.md](research.md), [supplement_research.md](supplement_research.md). Commit per change.
