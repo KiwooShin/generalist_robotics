@@ -1,0 +1,15 @@
+{
+  "metrics": {
+    "alpha": 0.47500000000000003,
+    "cumulative_steps": 6553600.0,
+    "survived_fraction": 0.8552500605583191,
+    "mean_forward_speed": 0.5784251689910889,
+    "episode_return": 35.96185302734375,
+    "size_scale": 1.389918219842337,
+    "mass_scale": 2.685145005560527,
+    "torque_scale": 3.7321319661472296
+  },
+  "num_timesteps": 6553600,
+  "wall_clock_seconds": 169.6849111660049,
+  "steps_per_second": 38622.173032159175
+}

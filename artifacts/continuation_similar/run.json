@@ -1,0 +1,181 @@
+{
+  "reached_target": true,
+  "total_finetune_steps": 6553600,
+  "wall_clock_seconds": 333.52934555499814,
+  "num_waypoints": 6,
+  "num_accepted_waypoints": 6,
+  "waypoints": [
+    {
+      "record": "waypoint",
+      "index": 0,
+      "alpha": 0.0,
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 0.9253750443458557,
+        "mean_forward_velocity": -0.12080999463796616,
+        "mean_forward_speed": 0.44764864444732666,
+        "distance_travelled": -2.2358908653259277,
+        "net_displacement": 3.570115089416504,
+        "episode_return": 35.084678649902344,
+        "nominal_leg_length": 0.515,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null
+    },
+    {
+      "record": "waypoint",
+      "index": 1,
+      "alpha": 0.1,
+      "params": {
+        "size_scale": 1.0717734625362931,
+        "mass_scale": 1.2311444133449163,
+        "torque_scale": 1.3195079107728942
+      },
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 0.9413750171661377,
+        "mean_forward_velocity": -0.1034826934337616,
+        "mean_forward_speed": 0.46499621868133545,
+        "distance_travelled": -2.0170276165008545,
+        "net_displacement": 4.248758316040039,
+        "episode_return": 36.327938079833984,
+        "nominal_leg_length": 0.551963333206191,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null
+    },
+    {
+      "record": "waypoint",
+      "index": 2,
+      "alpha": 0.25,
+      "params": {
+        "size_scale": 1.189207115002721,
+        "mass_scale": 1.681792830507429,
+        "torque_scale": 2.0
+      },
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 0.859000027179718,
+        "mean_forward_velocity": -0.17179247736930847,
+        "mean_forward_speed": 0.4746979773044586,
+        "distance_travelled": -3.2185189723968506,
+        "net_displacement": 3.4406142234802246,
+        "episode_return": 34.432464599609375,
+        "nominal_leg_length": 0.6124416642264013,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null
+    },
+    {
+      "record": "waypoint",
+      "index": 3,
+      "alpha": 0.47500000000000003,
+      "params": {
+        "size_scale": 1.389918219842337,
+        "mass_scale": 2.685145005560527,
+        "torque_scale": 3.7321319661472296
+      },
+      "viable_before": false,
+      "accepted": true,
+      "finetune_steps": 6553600,
+      "cumulative_steps": 6553600,
+      "stats_before": {
+        "survived_fraction": 0.7958750128746033,
+        "mean_forward_velocity": -0.18069900572299957,
+        "mean_forward_speed": 0.5080523490905762,
+        "distance_travelled": -3.3909800052642822,
+        "net_displacement": 4.296278953552246,
+        "episode_return": 32.54555130004883,
+        "nominal_leg_length": 0.7158078832188036,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": {
+        "survived_fraction": 0.8552500605583191,
+        "mean_forward_velocity": -0.23372291028499603,
+        "mean_forward_speed": 0.5784251689910889,
+        "distance_travelled": -4.713233947753906,
+        "net_displacement": 4.9237823486328125,
+        "episode_return": 35.96185302734375,
+        "nominal_leg_length": 0.7158078832188036,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "checkpoint": null
+    },
+    {
+      "record": "waypoint",
+      "index": 4,
+      "alpha": 0.7000000000000001,
+      "params": {
+        "size_scale": 1.624504792712471,
+        "mass_scale": 4.2870938501451725,
+        "torque_scale": 6.964404506368993
+      },
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 6553600,
+      "stats_before": {
+        "survived_fraction": 0.9377500414848328,
+        "mean_forward_velocity": -0.08280877768993378,
+        "mean_forward_speed": 0.5554106831550598,
+        "distance_travelled": -1.9794929027557373,
+        "net_displacement": 6.401900291442871,
+        "episode_return": 40.15192413330078,
+        "nominal_leg_length": 0.8366199682469225,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null
+    },
+    {
+      "record": "waypoint",
+      "index": 5,
+      "alpha": 1.0,
+      "params": {
+        "size_scale": 2.0,
+        "mass_scale": 7.999999999999998,
+        "torque_scale": 15.999999999999998
+      },
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 6553600,
+      "stats_before": {
+        "survived_fraction": 0.8018750548362732,
+        "mean_forward_velocity": -0.12945669889450073,
+        "mean_forward_speed": 0.5943921804428101,
+        "distance_travelled": -2.936135768890381,
+        "net_displacement": 7.252651214599609,
+        "episode_return": 34.189048767089844,
+        "nominal_leg_length": 1.03,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null
+    }
+  ]
+}
