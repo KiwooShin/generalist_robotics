@@ -1,6 +1,6 @@
 """Factory for robosuite environments that run the same task on any arm."""
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 import robosuite
@@ -21,8 +21,8 @@ def make_env(
     camera_names: str = "agentview",
     camera_height: int = 128,
     camera_width: int = 128,
-    seed: Optional[int] = None,
-    extra_kwargs: Optional[Dict[str, Any]] = None,
+    seed: int | None = None,
+    extra_kwargs: dict[str, Any] | None = None,
 ):
     """Create a robosuite environment for one (task, arm) pair.
 
@@ -50,21 +50,23 @@ def make_env(
         np.random.seed(seed)
 
     controller_config = load_composite_controller_config(controller=None, robot=arm)
-    kwargs: Dict[str, Any] = dict(
-        robots=arm,
-        controller_configs=controller_config,
-        has_renderer=False,
-        has_offscreen_renderer=use_camera_obs,
-        use_camera_obs=use_camera_obs,
-        reward_shaping=True,
-        horizon=horizon,
-        control_freq=control_freq,
-    )
+    kwargs: dict[str, Any] = {
+        "robots": arm,
+        "controller_configs": controller_config,
+        "has_renderer": False,
+        "has_offscreen_renderer": use_camera_obs,
+        "use_camera_obs": use_camera_obs,
+        "reward_shaping": True,
+        "horizon": horizon,
+        "control_freq": control_freq,
+    }
     if use_camera_obs:
         kwargs.update(
-            camera_names=camera_names,
-            camera_heights=camera_height,
-            camera_widths=camera_width,
+            {
+                "camera_names": camera_names,
+                "camera_heights": camera_height,
+                "camera_widths": camera_width,
+            }
         )
     if extra_kwargs:
         kwargs.update(extra_kwargs)

@@ -2,8 +2,7 @@
 
 import unittest
 
-from generalist_robotics.manipulation import embodiments
-from generalist_robotics.manipulation import robosuite_supported
+from generalist_robotics.manipulation import embodiments, robosuite_supported
 
 
 @unittest.skipUnless(
@@ -17,9 +16,7 @@ class TestEmbodimentRegistry(unittest.TestCase):
         names = embodiments.all_arm_names()
         self.assertEqual(len(names), len(set(names)))
         expected = (
-            embodiments.TRAINING_ARMS
-            + embodiments.HELDOUT_NEAR_ARMS
-            + embodiments.HELDOUT_FAR_ARMS
+            embodiments.TRAINING_ARMS + embodiments.HELDOUT_NEAR_ARMS + embodiments.HELDOUT_FAR_ARMS
         )
         self.assertCountEqual(names, expected)
 

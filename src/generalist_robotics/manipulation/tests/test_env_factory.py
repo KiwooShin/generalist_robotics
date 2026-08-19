@@ -4,9 +4,8 @@ import unittest
 
 import numpy as np
 
-from generalist_robotics.manipulation import embodiments
+from generalist_robotics.manipulation import embodiments, robosuite_supported
 from generalist_robotics.manipulation.env_factory import action_dim, arm_dof, make_env
-from generalist_robotics.manipulation import robosuite_supported
 
 
 @unittest.skipUnless(

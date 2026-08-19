@@ -1,7 +1,6 @@
 """Robot embodiments and the shared task suite used for cross-embodiment experiments."""
 
 from dataclasses import dataclass
-from typing import List
 
 TRAINING_ARMS = ["Panda", "Sawyer", "IIWA", "Kinova3"]
 HELDOUT_NEAR_ARMS = ["UR5e"]
@@ -42,12 +41,12 @@ EMBODIMENTS = [
 ]
 
 
-def all_arm_names() -> List[str]:
+def all_arm_names() -> list[str]:
     """Return every arm name in the study, training and held out."""
     return [embodiment.name for embodiment in EMBODIMENTS]
 
 
-def arms_in_split(split: str) -> List[str]:
+def arms_in_split(split: str) -> list[str]:
     """Return the arm names belonging to one split.
 
     Args:

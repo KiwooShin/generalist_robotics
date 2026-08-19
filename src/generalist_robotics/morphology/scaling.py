@@ -2,7 +2,6 @@
 
 import copy
 import dataclasses
-from typing import List
 
 import mujoco
 import numpy as np
@@ -119,7 +118,7 @@ def interpolate(start: MorphParams, end: MorphParams, alpha: float) -> MorphPara
 
 def length_scaled_qpos_indices(model: mujoco.MjModel) -> np.ndarray:
     """Return the qpos indices that carry a length: free-joint translation and slide joints."""
-    indices: List[int] = []
+    indices: list[int] = []
     for joint in range(model.njnt):
         address = int(model.jnt_qposadr[joint])
         joint_type = model.jnt_type[joint]

@@ -1,6 +1,7 @@
 """Unit tests for parametric morphology scaling of MuJoCo models."""
 
 import copy
+import dataclasses
 import unittest
 
 import mujoco
@@ -129,7 +130,7 @@ class TestMorphParams(unittest.TestCase):
 
     def test_is_frozen(self):
         params = morphology.MorphParams()
-        with self.assertRaises(Exception):
+        with self.assertRaises(dataclasses.FrozenInstanceError):
             params.size_scale = 2.0
 
 
@@ -161,7 +162,9 @@ class TestInterpolate(unittest.TestCase):
         end = morphology.dynamic_similarity_params(2.0)
         self.assertEqual(morphology.interpolate(start, end, 0.0), start)
         for a, b in zip(
-            morphology.interpolate(start, end, 1.0).__dict__.values(), end.__dict__.values()
+            morphology.interpolate(start, end, 1.0).__dict__.values(),
+            end.__dict__.values(),
+            strict=True,
         ):
             self.assertAlmostEqual(a, b)
 
@@ -223,7 +226,10 @@ class TestApplyMorphology(unittest.TestCase):
             "mesh_vert",
         ):
             np.testing.assert_allclose(
-                getattr(scaled, name), getattr(self.model, name) * 3.0, rtol=1e-9, atol=1e-12,
+                getattr(scaled, name),
+                getattr(self.model, name) * 3.0,
+                rtol=1e-9,
+                atol=1e-12,
                 err_msg=f"{name} did not scale",
             )
 
@@ -397,9 +403,7 @@ class TestPlaygroundHumanoid(unittest.TestCase):
         self.assertAlmostEqual(grown / base, factor, places=5)
 
     def test_scaled_humanoid_simulates_without_warnings(self):
-        scaled = morphology.apply_morphology(
-            self.model, morphology.dynamic_similarity_params(2.0)
-        )
+        scaled = morphology.apply_morphology(self.model, morphology.dynamic_similarity_params(2.0))
         data = simulate(scaled)
         self.assertTrue(np.isfinite(data.qpos).all())
         self.assertTrue(np.isfinite(data.qvel).all())
@@ -407,9 +411,7 @@ class TestPlaygroundHumanoid(unittest.TestCase):
 
     def test_bounding_volumes_follow_the_geometry(self):
         scaled = morphology.apply_morphology(self.model, morphology.MorphParams(size_scale=2.0))
-        np.testing.assert_allclose(
-            scaled.geom_rbound, self.model.geom_rbound * 2.0, rtol=1e-9
-        )
+        np.testing.assert_allclose(scaled.geom_rbound, self.model.geom_rbound * 2.0, rtol=1e-9)
         finite = np.abs(self.model.bvh_aabb).max(axis=1) < morphology.MAX_MODEL_VALUE / 2.0
         np.testing.assert_allclose(
             scaled.bvh_aabb[finite], self.model.bvh_aabb[finite] * 2.0, rtol=1e-6
