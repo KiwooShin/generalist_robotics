@@ -98,6 +98,33 @@ Stop it with Ctrl-C, or from another shell `pkill -f "[t]ools/serve.py"` — the
 pattern from matching (and killing) the shell running the command. GitHub also renders
 [research.md](research.md) directly, tables and all.
 
+
+## GPU memory on unified-memory hardware (read before running anything)
+
+The DGX Spark shares one pool of memory between CPU and GPU. JAX preallocates **75% of "GPU"
+memory** by default, which on this machine means a single process reserves **116.5 GiB of the
+121 GiB total**. Two concurrent JAX processes exhaust the machine, then block in D-state inside
+the NVIDIA driver where the kernel OOM killer cannot reap them — so the box wedges and needs a
+hard reboot rather than merely losing the job. This happened on 2026-08-19 (three concurrent
+processes; `total_vm` of 369 GiB and 146 GiB in the OOM report).
+
+`import generalist_robotics` applies the guard automatically:
+
+| | virtual | JAX device limit |
+|---|---|---|
+| JAX default | 116.5 GiB | 91.3 GiB |
+| with guard | **22.1 GiB** | **30.4 GiB** |
+
+Set the same values in a shell that imports `jax` directly, before the import:
+
+```bash
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export XLA_PYTHON_CLIENT_MEM_FRACTION=0.25
+```
+
+**Never run two GPU jobs at once.** `generalist_robotics.runtime.gpu.gpu_lock()` enforces this
+with an advisory file lock; wrap any training or sweep entry point in it.
+
 ## Hardware
 
 NVIDIA DGX Spark: GB10, 128 GB unified memory, aarch64, sm_121, ~273 GB/s bandwidth. Memory is
