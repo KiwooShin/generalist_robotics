@@ -316,3 +316,114 @@ robots"** as the validation they lack — which is close to a continuation path 
 2. **Saturation is a warning.** If ~100 embodiments saturates quadrupeds, a randomization baseline
    spanning A and B may be cheap and sufficient. The continuation method must beat *randomization
    over the A–B interval*, not just from-scratch training.
+
+---
+
+# DECISION (2026-08-09): locomotion morphology continuation
+
+**Chosen.** Continuation over **shape and forces** for legged locomotion in MuJoCo. Explicitly a
+learning-and-demo project rather than a paper bid — the publication angle is secondary, the
+artifact and the understanding are the point. Probing, sensors, and language interfaces are out of
+scope for this version.
+
+**Deferred to a later version:** hand-only manipulation policy (dexterous hand, morphology
+continuation over finger geometry and actuation).
+
+## Feasibility — verified hands-on, not assumed
+
+All checks run on the DGX Spark (aarch64, GB10, sm_121, 122 GiB):
+
+| Component | Status |
+|---|---|
+| **JAX + CUDA on aarch64** | ✅ `jax 0.10.2`, backend `gpu`, `CudaDevice(id=0)` |
+| **MJX GPU throughput** | ✅ **4.6M steps/s** at 4,096 parallel envs (trivial model) |
+| **MuJoCo Warp** | ✅ initializes on `cuda:0`, GB10, sm_121, CUDA Toolkit 12.9 / Driver 13.0 |
+| **MuJoCo Playground** | ✅ installs and imports; **19 locomotion envs** |
+| **robosuite (manipulation)** | ✅ still imports after the numpy 2.4.6 upgrade |
+
+⚠️ Package name trap: the PyPI distribution is **`playground`**, imported as `mujoco_playground`.
+`pip install mujoco_playground` fails.
+
+## The robot ladder — measured, not from docs
+
+Six humanoids ship with Playground. Loaded each and read the model directly:
+
+| Robot | env | nq | nv | actuators | mass (kg) | standing height (m) |
+|---|---|---:|---:|---:|---:|---:|
+| Robotis **OP3** | `Op3Joystick` | 27 | 26 | 20 | **3.1** | **0.244** |
+| **Berkeley Humanoid** | `BerkeleyHumanoidJoystickFlatTerrain` | 19 | 18 | **12** | 16.1 | 0.515 |
+| Booster **T1** | `T1JoystickFlatTerrain` | 30 | 29 | 23 | 31.6 | 0.665 |
+| Unitree **G1** | `G1JoystickFlatTerrain` | 36 | 35 | 29 | 33.3 | 0.785 |
+| Unitree **H1** | `H1JoystickGaitTracking` | 26 | 25 | 19 | 51.4 | 0.970 |
+| Apptronik **Apollo** | `ApolloJoystickFlatTerrain` | 39 | 38 | **32** | **80.9** | **1.080** |
+
+**Span: 26× in mass, 4.4× in height, 12→32 actuators.** Plus quadrupeds (Go1 ×4, Spot ×3, Barkour)
+for the leg-count work.
+
+Two immediate consequences:
+
+1. Mass grows *slower* than the cube of height across this set (26× mass for 4.4× height; k³ would
+   be 85×). These are real machines, not scaled copies — so the ladder is **already off the
+   dynamic-similarity manifold**, which is exactly the interesting regime.
+2. **Actuator counts differ**, so cross-robot continuation needs the joint-annealing trick.
+   Same-robot parametric morphing does not — which is why it comes first.
+
+## Plan
+
+### M1 — Self-morphing continuation (fixed topology, shape + force only)
+
+Train one policy on one robot (**Berkeley Humanoid** first — 12 actuators, cheapest to train),
+then walk it through a parametric family of itself: link-length scale `k`, mass/inertia scale, and
+torque-limit scale as **independent** axes. Step, test, fine-tune only on failure.
+
+**The headline artifact: a viability map.** Axes = size scale × torque scale. Colour = policy
+survives / fine-tune steps needed to recover. This directly tests the physics: along the
+dynamically-similar manifold (torque ∝ k⁴, time ∝ √k) transfer should be nearly free, so the map
+should show a **visible ridge of cheap transfer** along that curve, with expensive regions either
+side. A figure that predicts and then confirms a physical law is worth more than any success table.
+
+### M2 — Cross-robot continuation along the real ladder
+
+Berkeley Humanoid → T1 → G1 → H1 → Apollo. Requires DoF changes, handled by annealing joint
+stiffness (a joint locked at very high stiffness is effectively absent; annealing stiffness down
+grows a DoF continuously).
+
+### M3 — Topology: growing legs
+
+2-legged → 3-legged → 4-legged. Add a limb with near-zero mass and locked joints, then anneal mass
+up and stiffness down so the leg **grows** while the policy adapts. Going from 2 to 4 legs *must*
+cross a gait bifurcation — the policy cannot smoothly deform a biped gait into a quadruped one —
+which makes this the scientifically interesting case as well as the best demo.
+
+### The result worth aiming at
+
+> **Find a target morphology where direct RL training fails, but continuation from an ancestor
+> succeeds.**
+
+That is the modern-RL version of Bongard's PNAS 2011 finding that morphological change accelerates
+the evolution of robust behaviour. It is a clean, demonstrable claim, it needs no cluster, and it
+reframes continuation from "a cheaper route" to "a route to otherwise-unreachable policies."
+
+### Baselines that must be run
+
+1. From-scratch RL on the target morphology (the thing continuation must beat or unlock).
+2. Direct fine-tune, one jump A → B.
+3. **Domain randomization spanning the whole A–B interval** — the honest baseline, and the one
+   most likely to win. Embodiment Scaling Laws found quadrupeds saturate at ~100 embodiments.
+
+Report **total wall-clock and env-steps along the entire path**, not just the last step. A
+continuation that pays fine-tuning at every waypoint can easily cost more than training from
+scratch; that outcome must be reportable rather than hidden.
+
+## Demo plan
+
+- **The morph timelapse** — one continuous shot, robot smoothly growing from OP3-scale to
+  Apollo-scale while walking, never falling. This is the money shot.
+- **Growing a third leg** — biped walking, third leg grows in, gait transitions to a tripod.
+- **The ladder** — six real humanoids walking, all descended from one ancestor policy.
+- **Viability map, animated** — a point tracing morphology space, green where the policy survives,
+  with the similarity ridge visible.
+- **Failure reel** — direct transfer collapsing next to continuation succeeding, same target.
+
+Norms carried over from the survey: label real-time vs sped-up on every clip, prefer uncut takes,
+state the seed and step count behind every number.
