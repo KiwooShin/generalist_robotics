@@ -12,9 +12,16 @@ Conventions for all code in this repo.
 - Avoid private functions/classes (`_name`). Prefer small public functions with clear names.
 
 ## Structure
-- Well-managed package layout: small modules with one responsibility each.
-- Tests with `unittest` for every module, kept under `tests/`, runnable via
-  `python -m unittest discover`.
+- Plan the `src/` layout before writing code: sketch the package tree
+  (subpackages, responsibilities, dependency direction) first.
+- Never keep all source files in a single flat level — group them into
+  subpackages by responsibility (e.g. `data/`, `models/`, `training/`, `envs/`,
+  `utils/`, `cli/`), each with an `__init__.py` and one clear job.
+- Well-managed package layout: small modules with one responsibility each;
+  split a subpackage once it grows past ~5 files with distinct concerns.
+- Tests with `unittest` for every module, named `test_<module>.py` and kept in
+  a `tests/` folder sibling to the module (`src/foo/bar.py` →
+  `src/foo/tests/test_bar.py`), runnable via `python -m unittest discover`.
 
 ## Documents
 - `research.md` — research paper summaries (living survey).

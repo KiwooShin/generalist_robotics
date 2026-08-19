@@ -2,9 +2,14 @@
 
 import unittest
 
-from generalist_robotics import embodiments
+from generalist_robotics.manipulation import embodiments
+from generalist_robotics.manipulation import robosuite_supported
 
 
+@unittest.skipUnless(
+    robosuite_supported(),
+    "robosuite 1.5.2 requires mujoco<=3.3.7; the locomotion stack needs 3.11",
+)
 class TestEmbodimentRegistry(unittest.TestCase):
     """Checks the arm registry is internally consistent."""
 

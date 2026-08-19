@@ -4,10 +4,15 @@ import unittest
 
 import numpy as np
 
-from generalist_robotics import embodiments
-from generalist_robotics.env_factory import action_dim, arm_dof, make_env
+from generalist_robotics.manipulation import embodiments
+from generalist_robotics.manipulation.env_factory import action_dim, arm_dof, make_env
+from generalist_robotics.manipulation import robosuite_supported
 
 
+@unittest.skipUnless(
+    robosuite_supported(),
+    "robosuite 1.5.2 requires mujoco<=3.3.7; the locomotion stack needs 3.11",
+)
 class TestMakeEnv(unittest.TestCase):
     """Checks the same task constructs and steps on every arm."""
 

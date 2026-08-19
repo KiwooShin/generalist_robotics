@@ -6,7 +6,7 @@ import unittest
 import mujoco
 import numpy as np
 
-from generalist_robotics import morphology
+from generalist_robotics.morphology import scaling as morphology
 
 # A small robot that exercises every path: a mesh geom, a free joint, hinge and
 # slide joints, a joint-level torque limit, a servo and a direct-drive motor.

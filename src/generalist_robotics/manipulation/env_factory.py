@@ -6,7 +6,7 @@ import numpy as np
 import robosuite
 from robosuite.controllers import load_composite_controller_config
 
-from generalist_robotics.embodiments import get_embodiment
+from generalist_robotics.manipulation.embodiments import get_embodiment
 
 DEFAULT_HORIZON = 500
 DEFAULT_CONTROL_FREQ = 20

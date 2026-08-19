@@ -68,7 +68,7 @@ pip install -r requirements.txt
 Headless rendering needs `MUJOCO_GL=egl` (the `osmesa` backend is unavailable on this machine).
 
 ```bash
-MUJOCO_GL=egl PYTHONPATH=. python -m unittest discover -s tests -v
+MUJOCO_GL=egl PYTHONPATH=src python -m unittest discover -s src -p "test_*.py"
 ```
 
 **MuJoCo must stay pinned to 3.3.7** — robosuite 1.5.2 calls `MjData.qM`, which was removed in
