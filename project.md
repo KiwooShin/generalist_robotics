@@ -252,3 +252,67 @@ headline metric must be **total compute to a working B policy**, against: from-s
 fine-tune A→B in one jump, and broad randomized pretraining.
 
 *(literature verdict, baselines and refuted directions pending — run in progress)*
+
+---
+
+## The baseline in detail — Embodiment Scaling Laws (CoRL 2025)
+
+*Read from the primary source ([arXiv 2505.05753](https://arxiv.org/abs/2505.05753), v1 May 2025,
+v2 Aug 2025). This is the paper any morphology-transfer method must be positioned against.*
+
+**Towards Embodiment Scaling Laws in Robot Locomotion** — Bo Ai, Liu Dai, **Nico Bohlinger**,
+Dichen Li, Tongzhou Mu, Zhanxin Wu, K. Fay, Henrik I. Christensen, **Jan Peters**, Hao Su.
+
+### What they did
+
+Procedurally generated **GenBot-1K**: 1,012 robots — 348 humanoids, 332 quadrupeds, 332 hexapods.
+Variation covers **topology** (variable knee joints per leg), **geometry** (link and body scaling),
+and **kinematics** (joint limits). Base components — link shapes, dimensions, motor properties —
+are drawn from the Unitree Go2 and H1, then recombined procedurally.
+
+Policy is **URMA extended with multi-head attention**: fixed-length general observations plus
+varying-length joint-specific observations, fused by attention over joint descriptions, with
+actions decoded per joint from an embodiment descriptor φ(e).
+
+### Results
+
+- Within a class, quadrupeds and hexapods **saturate around 100 training embodiments**; humanoids
+  keep improving — humanoids are the hard case.
+- Training on all three classes gives **≈2× the reward of single-class training** (~30 vs ~18
+  cumulative reward).
+- **Embodiment count beats data volume**: 5% of embodiments with 4× more trajectories each gives
+  negligible gains beyond 0.2 data scale.
+- **Zero-shot to real Unitree Go2 and H1**, including artificially restricted Go2 joint limits.
+
+### Compute — and why we cannot reproduce it
+
+Experts: **~5 days on 160 RTX 4090/3090 GPUs, over 2 trillion simulation steps** (Isaac Lab, 4,096
+parallel envs per robot). Student distillation: **one week on a single H100**, 2 billion
+demonstration samples.
+
+This is a cluster-scale result. It is not reproducible on one DGX Spark — which cuts both ways: we
+cannot run the baseline ourselves, and a method that works on one GPU is valuable *precisely
+because* the brute-force route needs 160.
+
+### The opening, from their own limitations section
+
+Verbatim: *"Several factors, including **body mass distribution, joint damping, and actuation
+type**, are held fixed within a morphology class."*
+
+**Their zero-shot generalization is demonstrated over topology, geometry and joint limits — not
+over actuator dynamics, damping, or mass distribution.** That is exactly the axis this project
+targets: humanoids differing in torque limits, motor characteristics, and force response. The main
+baseline explicitly does not cover it, and says so.
+
+They also list only two physical platforms as a limitation, and name **"modular or reconfigurable
+robots"** as the validation they lack — which is close to a continuation path through hardware.
+
+### Two cautions
+
+1. **Same group, adjacent papers.** Bohlinger and Peters co-authored this, URMA ("One Policy to Run
+   Them All"), *and* Active Embodiment Identification ([arXiv 2605.08020](https://arxiv.org/abs/2605.08020)).
+   They own this territory and have stated intent to extend it. Assume they are working on the
+   actuation axis now.
+2. **Saturation is a warning.** If ~100 embodiments saturates quadrupeds, a randomization baseline
+   spanning A and B may be cheap and sufficient. The continuation method must beat *randomization
+   over the A–B interval*, not just from-scratch training.
