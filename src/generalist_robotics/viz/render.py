@@ -27,6 +27,7 @@ from generalist_robotics.training.ppo import load_checkpoint, make_policy
 
 # Layout of a continuation run directory, written by continuation.path.
 RUN_LOG_NAME = "run.jsonl"
+RUN_SUMMARY_NAME = "run.json"
 WAYPOINT_DIR_TEMPLATE = "waypoint_{:03d}"
 
 # The demo is a single scripted walk, not an evaluation, so the two sources of episode
@@ -83,6 +84,16 @@ def read_run_records(run_dir: pathlib.Path) -> list[dict]:
     """Read the JSON lines a continuation run wrote, in order."""
     log = pathlib.Path(run_dir) / RUN_LOG_NAME
     return [json.loads(line) for line in log.read_text().splitlines() if line.strip()]
+
+
+def run_summary(run_dir: pathlib.Path) -> dict:
+    """Read a continuation run's summary: whether it reached the target and what it cost.
+
+    The per-waypoint log keeps only the waypoints that were accepted, so the total spend it
+    implies excludes every fine-tune that was rolled back. The summary carries the real total,
+    which for a run that failed is most of the number worth reporting.
+    """
+    return json.loads((pathlib.Path(run_dir) / RUN_SUMMARY_NAME).read_text())
 
 
 def load_run(run_dir: pathlib.Path) -> tuple[dict, list[Waypoint]]:
@@ -687,6 +698,24 @@ def storyboard_seconds(beats: Sequence[Beat]) -> float:
     return float(sum(beat.seconds for beat in beats))
 
 
+def advance_to(
+    walker: MorphingWalker,
+    start: float,
+    deadline: float,
+    alpha: Callable[[float], float],
+) -> None:
+    """Step a walker until its own clock passes a deadline measured from a start time.
+
+    Args:
+        walker: the robot to advance.
+        start: the walker's clock reading the deadline is measured from.
+        deadline: seconds of the clip the walker should have reached.
+        alpha: path coordinate wanted at a given number of seconds into the clip.
+    """
+    while walker.time - start < deadline:
+        walker.step(alpha(walker.time - start))
+
+
 def walk_frames(
     walker: MorphingWalker,
     renderer: OffscreenRenderer,
@@ -725,12 +754,10 @@ def walk_frames(
     start = walker.time
     frame = 0
     while frame / fps <= total:
-        deadline = start + frame / fps
         beat, fraction = beat_at(beats, walker.time - start)
         if policy_override is not None:
             walker.policy_index_override = policy_override(beat, fraction)
-        while walker.time < deadline:
-            walker.step(alpha_at(beats, walker.time - start))
+        advance_to(walker, start, frame / fps, lambda time: alpha_at(beats, time))
         elapsed = walker.time - start
         beat, fraction = beat_at(beats, elapsed)
         update_camera(camera, rig, walker.data.qpos[:3])

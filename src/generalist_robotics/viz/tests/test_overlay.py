@@ -150,6 +150,48 @@ class ComposeTest(unittest.TestCase):
         self.assertEqual(overlay.format_steps(0), "0")
 
 
+class SplitHudTest(unittest.TestCase):
+    """The two-up display used by the comparison segment."""
+
+    def panel(self, note: str = "", alert: bool = False) -> overlay.SplitPanel:
+        """One column's content."""
+        return overlay.SplitPanel(
+            eyebrow="ON THE SIMILARITY MANIFOLD",
+            title="torque ×16",
+            readouts=(overlay.Readout("α", "0.648"), overlay.Readout("SIZE", "×1.56")),
+            steps=6_553_600,
+            steps_label="ENV STEPS SPENT",
+            note=note,
+            alert=alert,
+        )
+
+    def test_columns_are_placed_side_by_side(self):
+        hud = overlay.SplitHud(1920, 1080, "footer")
+        self.assertEqual(hud.hx(0, 0), 0)
+        self.assertEqual(hud.hx(1, 0), 960)
+        self.assertEqual(hud.hx(1, 960), 1920)
+
+    def test_composition_keeps_the_frame_shape_and_marks_both_halves(self):
+        hud = overlay.SplitHud(640, 360, "footer")
+        frame = grey_frame(640, 360)
+        composed = hud.draw(frame, self.panel(), self.panel())
+        self.assertEqual(composed.shape, frame.shape)
+        self.assertEqual(composed.dtype, np.uint8)
+        difference = np.abs(composed.astype(int) - frame.astype(int)).mean(axis=(0, 2))
+        self.assertGreater(difference[:320].mean(), 1.0)
+        self.assertGreater(difference[320:].mean(), 1.0)
+
+    def test_a_state_callout_changes_only_its_own_half(self):
+        hud = overlay.SplitHud(640, 360, "footer")
+        frame = grey_frame(640, 360)
+        plain = hud.draw(frame, self.panel(), self.panel())
+        called = hud.draw(frame, self.panel(), self.panel("STALLED AT α = 0.550", alert=True))
+        np.testing.assert_array_equal(called[:, :320], plain[:, :320])
+        self.assertGreater(
+            np.abs(called[:, 320:].astype(int) - plain[:, 320:].astype(int)).max(), 0
+        )
+
+
 class CardTest(unittest.TestCase):
     """The title and end cards."""
 

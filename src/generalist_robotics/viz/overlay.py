@@ -514,3 +514,153 @@ def draw_card(
         y += round(41 * scale)
     draw.text((left, height - round(96 * scale)), footer, font=footer_font, fill=palette.muted)
     return np.asarray(image)
+
+
+@dataclasses.dataclass(frozen=True)
+class SplitPanel:
+    """One column of the comparison display.
+
+    Attributes:
+        eyebrow: small caps label above the column's title.
+        title: what makes this column different from the other one.
+        readouts: the inline numbers along the bottom of the column.
+        steps: environment steps this run has spent so far.
+        steps_label: what those steps are.
+        note: a state callout over the column, or an empty string for none.
+        alert: whether the note and the step count are drawn in the warm accent.
+    """
+
+    eyebrow: str
+    title: str
+    readouts: tuple[Readout, ...]
+    steps: int
+    steps_label: str
+    note: str = ""
+    alert: bool = False
+
+
+class SplitHud:
+    """Two-up display for the comparison segment: one column of chrome per run.
+
+    The two runs are rendered side by side at half width each, so the layout is designed once in
+    the pixels of a single 960 x 1080 column and placed twice. Only the divider and the footer
+    are shared, and they are the only parts composed in advance.
+    """
+
+    def __init__(
+        self, width: int, height: int, footer: str, palette: Palette | None = None
+    ) -> None:
+        self.width = width
+        self.height = height
+        self.footer = footer
+        self.palette = palette if palette is not None else Palette()
+        self.scale = height / DESIGN_HEIGHT
+        self.half = width / 2
+        self.chrome = self.build_chrome()
+
+    def px(self, value: float) -> int:
+        """Convert a length in design pixels to this frame's pixels."""
+        return round(value * self.scale)
+
+    def hx(self, side: int, value: float) -> int:
+        """Convert an x coordinate inside a 960-wide design column to this frame."""
+        return round(side * self.half + value * self.scale)
+
+    def y(self, value: float) -> int:
+        """Convert a y coordinate in a 1080-tall design frame to this frame."""
+        return round(value * self.scale)
+
+    def column_box(self, side: int, left: float, top: float, right: float, bottom: float):
+        """Convert a rectangle inside one design column to this frame."""
+        return (self.hx(side, left), self.y(top), self.hx(side, right), self.y(bottom))
+
+    def font(self, family: str, size: float) -> ImageFont.FreeTypeFont:
+        """Load a face at a design-space point size scaled to this frame."""
+        return load_font(family, self.px(size))
+
+    def build_chrome(self) -> Image.Image:
+        """Compose the divider and the footer, the only parts shared by the two columns."""
+        layer = Image.new("RGBA", (self.width, self.height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(layer)
+        middle = round(self.half)
+        draw.rectangle((middle - self.px(1), 0, middle + self.px(1), self.height), (250, 250, 248))
+        footer = self.font("sans", 15)
+        y = self.y(1026)
+        draw.text((self.hx(0, 44), y + self.px(1)), self.footer, font=footer, fill=(246, 246, 243))
+        draw.text((self.hx(0, 44), y), self.footer, font=footer, fill=self.palette.ink_soft)
+        return layer
+
+    def draw_column(self, image: Image.Image, side: int, panel: SplitPanel) -> None:
+        """Draw one column's header, numbers and state callout."""
+        palette = self.palette
+        accent = palette.warm if panel.alert else palette.cool
+        layer = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(layer)
+        tracking = self.px(2)
+
+        header = self.column_box(side, 44, 46, 916, 168)
+        draw_panel(draw, header, palette)
+        draw_tracked(
+            draw,
+            (self.hx(side, 66), self.y(66)),
+            panel.eyebrow,
+            self.font("sans_bold", 14),
+            accent,
+            tracking,
+        )
+        draw.text(
+            (self.hx(side, 66), self.y(96)),
+            panel.title,
+            font=self.font("sans_bold", 28),
+            fill=palette.ink,
+        )
+
+        body = self.column_box(side, 44, 812, 916, 1010)
+        draw_panel(draw, body, palette)
+        draw_tracked(
+            draw,
+            (self.hx(side, 66), self.y(836)),
+            panel.steps_label,
+            self.font("sans_bold", 14),
+            palette.muted,
+            tracking,
+        )
+        steps_font = self.font("mono_bold", 44)
+        steps = format_steps(panel.steps)
+        draw.text(
+            (self.hx(side, 894) - text_width(draw, steps, steps_font), self.y(862)),
+            steps,
+            font=steps_font,
+            fill=accent if panel.alert else palette.ink,
+        )
+        label = self.font("sans", 15)
+        value = self.font("mono_bold", 20)
+        for index, readout in enumerate(panel.readouts):
+            x = self.hx(side, 66 + 212 * index)
+            draw.text((x, self.y(938)), readout.label, font=label, fill=palette.muted)
+            draw.text((x, self.y(962)), readout.value, font=value, fill=palette.ink)
+
+        if panel.note:
+            box = self.column_box(side, 44, 196, 916, 288)
+            draw.rounded_rectangle(
+                box,
+                radius=self.px(10),
+                fill=(252, 252, 250, 238),
+                outline=accent,
+                width=max(1, self.px(3)),
+            )
+            note_font = self.font("sans_bold", 22)
+            centre = (box[0] + box[2]) / 2
+            width = tracked_width(draw, panel.note, note_font, self.px(3))
+            draw_tracked(
+                draw, (centre - width / 2, self.y(228)), panel.note, note_font, accent, self.px(3)
+            )
+        image.alpha_composite(layer)
+
+    def draw(self, frame: np.ndarray, left: SplitPanel, right: SplitPanel) -> np.ndarray:
+        """Compose both columns onto one side-by-side frame and return the result."""
+        image = Image.fromarray(frame).convert("RGBA")
+        image.alpha_composite(self.chrome)
+        self.draw_column(image, 0, left)
+        self.draw_column(image, 1, right)
+        return np.asarray(image.convert("RGB"))

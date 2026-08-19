@@ -14,6 +14,12 @@ from generalist_robotics.viz import render
 
 RUN_INTEGRATION = os.environ.get("GENROBO_SKIP_SLOW_TESTS", "0") != "1"
 
+# Backends that render without a display. Anything else sends MuJoCo to GLFW, which aborts the
+# whole process rather than raising when there is no X server, so those checks are skipped
+# outright instead of being guarded.
+OFFSCREEN_BACKENDS = ("egl", "osmesa")
+HEADLESS_RENDERING = os.environ.get("MUJOCO_GL", "").lower() in OFFSCREEN_BACKENDS
+
 # The real continuation run this repository ships, used to check the log reader against the
 # artefact it actually has to read rather than against a fixture that agrees with it by fiat.
 SIMILAR_RUN_DIR = pathlib.Path(__file__).resolve().parents[4] / "artifacts" / "continuation_similar"
@@ -92,6 +98,26 @@ class LoadRunTest(unittest.TestCase):
             )
             with self.assertRaises(ValueError):
                 render.load_run(path)
+
+
+UNDERPOWERED_RUN_DIR = SIMILAR_RUN_DIR.parent / "continuation_underpowered"
+
+
+class RunSummaryTest(unittest.TestCase):
+    """The run summary carries the spend the accepted waypoints do not."""
+
+    def test_the_similar_run_reached_its_target(self):
+        summary = render.run_summary(SIMILAR_RUN_DIR)
+        self.assertTrue(summary["reached_target"])
+        self.assertEqual(summary["total_finetune_steps"], 6_553_600)
+
+    def test_the_underpowered_run_spent_far_more_than_it_kept(self):
+        summary = render.run_summary(UNDERPOWERED_RUN_DIR)
+        _, waypoints = render.load_run(UNDERPOWERED_RUN_DIR)
+        self.assertFalse(summary["reached_target"])
+        self.assertEqual(summary["total_finetune_steps"], 117_964_800)
+        self.assertLess(waypoints[-1].cumulative_steps, summary["total_finetune_steps"])
+        self.assertAlmostEqual(waypoints[-1].alpha, 0.55)
 
 
 class PathCoordinateTest(unittest.TestCase):
@@ -209,6 +235,7 @@ class StoryboardTest(unittest.TestCase):
         self.assertEqual(fraction, 1.0)
 
 
+@unittest.skipUnless(HEADLESS_RENDERING, "MUJOCO_GL is not set to an offscreen backend")
 class RendererTest(unittest.TestCase):
     """Offscreen rendering of a model that changes size under the graphics context."""
 
@@ -271,13 +298,22 @@ class MorphingWalkerTest(unittest.TestCase):
     def test_walks_and_grows_without_falling(self):
         walker = render.MorphingWalker(SIMILAR_RUN_DIR)
         walker.run_to(0.0, 1.0)
-        for step in range(120):
-            walker.step(step / 119.0)
+        self.assertTrue(walker.standing)
+        start = walker.time
+        render.advance_to(walker, start, 3.4, lambda time: min(1.0, time / 3.0))
         telemetry = walker.telemetry(1.0)
         self.assertTrue(telemetry.upright)
         self.assertAlmostEqual(telemetry.params.size_scale, 2.0, places=6)
+        self.assertAlmostEqual(telemetry.params.mass_scale, 8.0, places=5)
         self.assertGreater(telemetry.standing_height, 1.0)
+        self.assertGreater(telemetry.speed, 0.2)
         self.assertEqual(telemetry.cumulative_steps, 6_553_600)
+
+    def test_the_simulator_clock_follows_the_body_size(self):
+        walker = render.MorphingWalker(SIMILAR_RUN_DIR)
+        small = float(walker.model.opt.timestep)
+        walker.set_alpha(1.0)
+        self.assertAlmostEqual(float(walker.model.opt.timestep) / small, 2.0**0.5, places=6)
 
 
 if __name__ == "__main__":

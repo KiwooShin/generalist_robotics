@@ -10,6 +10,7 @@ import tempfile
 from collections.abc import Iterator, Sequence
 
 import imageio_ffmpeg
+import mujoco
 import numpy as np
 
 from generalist_robotics.viz import overlay, render
@@ -633,11 +634,23 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--baseline", type=pathlib.Path, default=DEFAULT_BASELINE_PATH)
     parser.add_argument("--media-dir", type=pathlib.Path, default=DEFAULT_MEDIA_DIR)
     parser.add_argument("--name", default="morphology_continuation")
+    parser.add_argument(
+        "--underpowered-run-dir", type=pathlib.Path, default=DEFAULT_UNDERPOWERED_RUN_DIR
+    )
     parser.add_argument("--preview", action="store_true", help="fast, small check render")
     parser.add_argument("--no-gif", action="store_true")
+    parser.add_argument(
+        "--comparison",
+        action="store_true",
+        help="also render the two-up segment against the off-manifold run",
+    )
+    parser.add_argument("--only-comparison", action="store_true")
     arguments = parser.parse_args(argv)
 
     settings, timing = preview_settings() if arguments.preview else (RenderSettings(), None)
+    if arguments.only_comparison:
+        print(json.dumps(comparison_report(arguments, settings), indent=2))
+        return 0
     report = render_film(
         run_dir=arguments.run_dir,
         baseline_path=arguments.baseline,
@@ -657,8 +670,280 @@ def main(argv: Sequence[str] | None = None) -> int:
                 name=arguments.name,
             )
         )
+    if arguments.comparison:
+        report["comparison"] = comparison_report(arguments, settings)
     print(json.dumps(report, indent=2))
     return 0
+
+
+def comparison_report(arguments: argparse.Namespace, settings: RenderSettings) -> dict:
+    """Render the two-up segment with the command line's paths and report what was written."""
+    return render_comparison(
+        run_dirs=(arguments.run_dir, arguments.underpowered_run_dir),
+        baseline_path=arguments.baseline,
+        media_dir=arguments.media_dir,
+        settings=settings,
+        timing=(
+            ComparisonTiming(title=1.0, opening=1.0, growth=5.0, arrival=1.0, end=1.0, fade=0.3)
+            if arguments.preview
+            else None
+        ),
+    )
+
+
+# Where the run that leaves the similarity manifold lives, and the two columns' captions.
+DEFAULT_UNDERPOWERED_RUN_DIR = pathlib.Path("artifacts/continuation_underpowered")
+COMPARISON_COLUMNS = (
+    ("ON THE SIMILARITY MANIFOLD", "torque ×16"),
+    ("OFF THE MANIFOLD", "torque ×8"),
+)
+
+
+def comparison_settings(settings: RenderSettings) -> RenderSettings:
+    """Adapt a render's camera to the two-up layout.
+
+    Each run gets half the frame, so the target body needs a wider shot than the hero film to
+    stay inside its column, and the camera has to follow the robot's sideways drift completely
+    rather than partly: in a column two thirds as wide, the drift the hero shot can absorb walks
+    the robot out of frame.
+    """
+    return dataclasses.replace(settings, camera=render.CameraRig(distance=5.4, lateral_follow=1.0))
+
+
+@dataclasses.dataclass(frozen=True)
+class ComparisonTiming:
+    """Durations of the comparison segment, in seconds of the finished clip."""
+
+    title: float = 5.0
+    opening: float = 3.0
+    growth: float = 20.0
+    arrival: float = 6.0
+    end: float = 7.5
+    fade: float = 0.5
+
+
+class ComparisonRun:
+    """One column of the comparison: a continuation run, its cost curve and its verdict.
+
+    A run that failed is the reason this segment exists, and its cost is not the cost the
+    accepted waypoints imply: the log keeps only the waypoints that stuck, so the fine-tunes that
+    were rolled back — most of the spend — appear in the run summary and nowhere else. The step
+    counter therefore follows the accepted waypoints up to the point the run stalled at, and then
+    climbs to the summary's total while the body stays exactly where it stopped.
+    """
+
+    def __init__(self, run_dir: pathlib.Path, eyebrow: str, title: str) -> None:
+        self.run_dir = pathlib.Path(run_dir)
+        self.eyebrow = eyebrow
+        self.title = title
+        _, self.waypoints = render.load_run(run_dir)
+        self.summary = render.run_summary(run_dir)
+        self.reached = bool(self.summary["reached_target"])
+        self.total_steps = int(self.summary["total_finetune_steps"])
+        self.stall_alpha = None if self.reached else self.waypoints[-1].alpha
+        self.rejected = sum(
+            1
+            for record in render.read_run_records(run_dir)
+            if record.get("record") == "waypoint" and not record.get("accepted")
+        )
+
+    def body_alpha(self, alpha: float) -> float:
+        """The path coordinate this run's body actually got to, at a clip coordinate."""
+        return alpha if self.stall_alpha is None else min(alpha, self.stall_alpha)
+
+    def steps_at(self, alpha: float) -> int:
+        """Environment steps this run had spent by a clip coordinate."""
+        reached = self.waypoints[render.waypoint_at(self.waypoints, self.body_alpha(alpha))]
+        if self.stall_alpha is None or alpha <= self.stall_alpha:
+            return reached.cumulative_steps
+        remaining = max(1e-9, 1.0 - self.stall_alpha)
+        share = min(1.0, (alpha - self.stall_alpha) / remaining)
+        return int(
+            round(reached.cumulative_steps + (self.total_steps - reached.cumulative_steps) * share)
+        )
+
+    def note(self, alpha: float) -> str:
+        """The state callout over this column, empty until there is something to say."""
+        if self.stall_alpha is None or alpha <= self.stall_alpha:
+            return ""
+        return f"STALLED AT α = {self.stall_alpha:.3f} · {self.rejected} rejected fine-tunes"
+
+    def panel(self, alpha: float, telemetry: render.Telemetry) -> overlay.SplitPanel:
+        """Bind one frame of this column's telemetry to what its chrome should print."""
+        note = self.note(alpha)
+        return overlay.SplitPanel(
+            eyebrow=self.eyebrow,
+            title=self.title,
+            readouts=(
+                overlay.Readout("α", f"{telemetry.alpha:0.3f}"),
+                overlay.Readout("SIZE", f"×{telemetry.params.size_scale:0.2f}"),
+                overlay.Readout("HIP HEIGHT", f"{telemetry.standing_height:0.2f} m"),
+                overlay.Readout("SPEED", f"{telemetry.speed:0.2f} m/s"),
+            ),
+            steps=self.steps_at(alpha),
+            steps_label="ENV STEPS SPENT",
+            note=note,
+            alert=bool(note),
+        )
+
+
+def comparison_beats(timing: ComparisonTiming) -> tuple[render.Beat, ...]:
+    """Hold at the start body, grow the whole path, then hold at the end."""
+    return (
+        render.Beat("open", timing.opening, 0.0, 0.0),
+        render.Beat("grow", timing.growth, 0.0, 1.0),
+        render.Beat("arrive", timing.arrival, 1.0, 1.0),
+    )
+
+
+def comparison_title_card(width: int, height: int) -> np.ndarray:
+    """The comparison's opening card."""
+    return overlay.draw_card(
+        width,
+        height,
+        "THE CONTROL",
+        ("Same path, one axis moved", "×16 torque against ×8"),
+        (
+            "Dynamic similarity says a robot ×2 the size and ×8 the mass needs ×16 the torque.",
+            "The run on the right is given ×8 instead: the same geometry, the same schedule,",
+            "the same starting policy, on a body that is underpowered for its size.",
+        ),
+        "artifacts/continuation_similar and artifacts/continuation_underpowered · seed 0",
+    )
+
+
+def comparison_end_card(width: int, height: int, runs, baseline: Baseline) -> np.ndarray:
+    """The comparison's closing card, stating the failure as plainly as the success."""
+    good, bad = runs
+    share = 100.0 * bad.total_steps / baseline.steps
+    return overlay.draw_card(
+        width,
+        height,
+        "RESULT",
+        (f"{good.total_steps:,} steps to ×2 size", f"{bad.total_steps:,} steps and no further"),
+        (
+            "On the manifold the walk reached the target body for 4.1% of a run from scratch.",
+            f"Off it the same procedure stalled at α = {bad.stall_alpha:.3f} after "
+            f"{bad.total_steps:,} steps,",
+            f"{share:.0f}% of a run from scratch, and three backtracks — and never reached ×2.",
+            "",
+            "The failure is survival, not speed: the underpowered giant holds about 0.48 m/s",
+            "while the fraction of the episode it survives falls to 0.24-0.68.",
+        ),
+        "8 evaluation episodes per waypoint · viability floor: survive 0.80 of the episode "
+        "at a Froude number of at least 0.01",
+    )
+
+
+def render_comparison(
+    run_dirs: tuple[pathlib.Path, pathlib.Path] = (DEFAULT_RUN_DIR, DEFAULT_UNDERPOWERED_RUN_DIR),
+    baseline_path: pathlib.Path = DEFAULT_BASELINE_PATH,
+    media_dir: pathlib.Path = DEFAULT_MEDIA_DIR,
+    settings: RenderSettings | None = None,
+    timing: ComparisonTiming | None = None,
+    name: str = "manifold_vs_underpowered",
+) -> dict:
+    """Render the two-up segment: the similar run walking the path against the one that stalled.
+
+    Both robots are simulated live, side by side, from the same start policy and on the same
+    alpha schedule. The underpowered one stops growing where its run stopped: its body holds at
+    the stall while its step counter climbs through the fine-tunes that were rolled back.
+
+    Args:
+        run_dirs: the run that reached its target first, then the one that did not.
+        baseline_path: from-scratch run the spends are measured against.
+        media_dir: directory the mp4 is written to.
+        settings: resolution, frame rate and camera.
+        timing: durations of the segment's parts.
+        name: stem of the output file.
+
+    Returns:
+        A report with the output path, frame count, duration and whether either robot fell.
+    """
+    settings = comparison_settings(settings if settings is not None else RenderSettings())
+    timing = timing if timing is not None else ComparisonTiming()
+    baseline = load_baseline(baseline_path)
+    runs = tuple(
+        ComparisonRun(directory, *column)
+        for directory, column in zip(run_dirs, COMPARISON_COLUMNS, strict=True)
+    )
+    beats = comparison_beats(timing)
+    total = render.storyboard_seconds(beats)
+
+    walkers = [render.MorphingWalker(run.run_dir) for run in runs]
+    half = settings.width // 2
+    renderers = [render.OffscreenRenderer(w.model, half, settings.height) for w in walkers]
+    reference = render.ScaleReference(
+        marks=(walkers[0].base_standing_height, walkers[0].base_standing_height * 2.0)
+    )
+    hud = overlay.SplitHud(
+        settings.width,
+        settings.height,
+        "real time, not sped up  ·  both bodies simulated live  ·  deterministic policies, "
+        "seed 0  ·  sensor noise and random pushes off  ·  floor squares are 1.00 m",
+    )
+    camera = mujoco.MjvCamera()
+
+    video_path = pathlib.Path(media_dir) / f"{name}.mp4"
+    title = comparison_title_card(settings.width, settings.height)
+    end = comparison_end_card(settings.width, settings.height, runs, baseline)
+    fade = max(1, int(round(timing.fade * settings.fps)))
+    fell: dict[str, float] = {}
+
+    for walker in walkers:
+        walker.run_to(0.0, walker.config.settle_seconds)
+    starts = [walker.time for walker in walkers]
+    composed = title
+    with VideoWriter(video_path, settings.width, settings.height, settings.fps) as writer:
+        for frame in card_frames(title, timing.title, settings.fps):
+            writer.write(frame)
+        index = 0
+        while index / settings.fps <= total:
+            alpha = render.alpha_at(beats, index / settings.fps)
+            columns = []
+            for run, walker, renderer, start in zip(runs, walkers, renderers, starts, strict=True):
+                render.advance_to(
+                    walker,
+                    start,
+                    index / settings.fps,
+                    lambda time, run=run: run.body_alpha(render.alpha_at(beats, time)),
+                )
+                render.update_camera(camera, settings.camera, walker.data.qpos[:3])
+                columns.append(renderer.render(walker.data, camera, reference))
+                if not walker.standing:
+                    fell.setdefault(run.title, walker.time - start)
+            panels = [
+                run.panel(alpha, walker.telemetry(run.body_alpha(alpha)))
+                for run, walker in zip(runs, walkers, strict=True)
+            ]
+            composed = hud.draw(np.hstack(columns), panels[0], panels[1])
+            if index < fade:
+                composed = blend(title, composed, (index + 1) / fade)
+            writer.write(composed)
+            if index % (10 * settings.fps) == 0:
+                print(
+                    f"  frame {index:5d}  α={alpha:5.3f}  "
+                    + "  ".join(
+                        f"{r.title}: ×{w.params.size_scale:.2f}"
+                        for r, w in zip(runs, walkers, strict=True)
+                    ),
+                    flush=True,
+                )
+            index += 1
+        for offset, frame in enumerate(card_frames(end, timing.end, settings.fps)):
+            writer.write(blend(composed, frame, min(1.0, (offset + 1) / fade)))
+        frames = writer.frames
+    for renderer in renderers:
+        renderer.close()
+
+    return {
+        "video": str(video_path),
+        "frames": frames,
+        "seconds": frames / settings.fps,
+        "resolution": f"{settings.width}x{settings.height}",
+        "fps": settings.fps,
+        "fell": fell,
+    }
 
 
 if __name__ == "__main__":
