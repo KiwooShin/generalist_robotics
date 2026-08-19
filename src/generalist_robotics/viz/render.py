@@ -271,6 +271,11 @@ class MorphingWalker:
     touched: the robot is not lifted to match its new legs, so it grows by pressing itself off
     the floor, exactly as the contact solver has it. At the rates used here a control step
     grows the body by well under a tenth of a percent.
+
+    The controller is the environment's, not a copy of it. The observation the policy sees comes
+    from the Playground environment's own observation function, fed through MjxDataView, and the
+    default pose, action scale and contact sensors are read off the same environment, so nothing
+    here can drift away from what the policy was trained against.
     """
 
     def __init__(

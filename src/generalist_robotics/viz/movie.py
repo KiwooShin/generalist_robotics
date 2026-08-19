@@ -6,6 +6,7 @@ import json
 import pathlib
 import subprocess
 import sys
+import tempfile
 from collections.abc import Iterator, Sequence
 
 import imageio_ffmpeg
@@ -28,9 +29,13 @@ VIDEO_BITRATE = "14M"
 VIDEO_MAXRATE = "20M"
 VIDEO_BUFSIZE = "40M"
 
-# GIF settings, tried in order until one lands under the size budget.
-GIF_ATTEMPTS = ((20, 200), (16, 160), (12, 128), (10, 96))
-GIF_SIZE_LIMIT = 10 * 1024 * 1024
+# Frame rate, palette size and width tried in order until one lands under the size budget, which
+# is set well under the 10 MB a README can carry so the loop stays comfortable to load. The shot
+# pans across a floor grid, so every frame differs everywhere and a GIF of it is expensive;
+# dithering is off because its noise costs more bytes here than the banding it removes.
+GIF_ATTEMPTS = ((16, 176, 800), (14, 144, 760), (12, 112, 720), (11, 96, 680), (10, 80, 640))
+GIF_SIZE_LIMIT = 6_500_000
+GIF_DITHER = "none"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -374,17 +379,17 @@ def write_gif(
     gif: pathlib.Path,
     start: float,
     duration: float,
-    width: int = 800,
+    max_width: int = 800,
     size_limit: int = GIF_SIZE_LIMIT,
 ) -> pathlib.Path:
-    """Cut a GIF out of the finished video, backing off frame rate and palette until it fits.
+    """Cut a GIF out of a finished video, backing off rate, palette and width until it fits.
 
     Args:
         video: the encoded clip to cut from.
         gif: destination path.
         start: seconds into the clip where the cut begins.
         duration: length of the cut, in seconds.
-        width: output width in pixels; the height follows the aspect ratio.
+        max_width: widest output accepted, in pixels; the height follows the aspect ratio.
         size_limit: largest acceptable file, in bytes.
 
     Returns:
@@ -395,11 +400,12 @@ def write_gif(
     """
     gif = pathlib.Path(gif)
     gif.parent.mkdir(parents=True, exist_ok=True)
-    for fps, colours in GIF_ATTEMPTS:
+    for fps, colours, attempt_width in GIF_ATTEMPTS:
+        width = min(max_width, attempt_width)
         filters = (
             f"fps={fps},scale={width}:-1:flags=lanczos,split[a][b];"
             f"[a]palettegen=max_colors={colours}:stats_mode=diff[p];"
-            "[b][p]paletteuse=dither=bayer:bayer_scale=3"
+            f"[b][p]paletteuse=dither={GIF_DITHER}"
         )
         subprocess.run(
             [
@@ -433,8 +439,8 @@ def blend(first: np.ndarray, second: np.ndarray, weight: float) -> np.ndarray:
 
 
 def card_frames(card: np.ndarray, seconds: float, fps: int) -> Iterator[np.ndarray]:
-    """Repeat a still card for a stretch of the clip."""
-    for _ in range(max(1, int(round(seconds * fps)))):
+    """Repeat a still card for a stretch of the clip; a duration of zero yields nothing."""
+    for _ in range(max(0, int(round(seconds * fps)))):
         yield card
 
 
@@ -496,6 +502,8 @@ def render_film(
     title = script.title_card(settings.width, settings.height)
     end = script.end_card(settings.width, settings.height)
     fade = max(1, int(round(script.timing.fade * settings.fps)))
+    fade_in = fade if script.timing.title > 0 else 0
+    fade_out = fade if script.timing.end > 0 else 0
     fell_at: float | None = None
     frames = 0
     composed = title
@@ -516,8 +524,8 @@ def render_film(
             )
         ):
             composed = hud.draw(image, script.hud_frame(telemetry, beat, fraction))
-            if index < fade:
-                composed = blend(title, composed, (index + 1) / fade)
+            if index < fade_in:
+                composed = blend(title, composed, (index + 1) / fade_in)
             writer.write(composed)
             frames += 1
             if not telemetry.upright and fell_at is None:
@@ -530,7 +538,8 @@ def render_film(
                 )
         last = composed
         for index, frame in enumerate(card_frames(end, script.timing.end, settings.fps)):
-            writer.write(blend(last, frame, min(1.0, (index + 1) / fade)))
+            weight = min(1.0, (index + 1) / fade_out) if fade_out else 1.0
+            writer.write(blend(last, frame, weight))
         total_frames = writer.frames
     renderer.close()
 
@@ -549,6 +558,64 @@ def render_film(
         report["gif"] = str(gif_path)
         report["gif_window"] = [start, duration]
     return report
+
+
+# Storyboard of the standalone README loop: one uninterrupted growth, no cards and no stop.
+GROWTH_LOOP_TIMING = Timing(
+    title=0.0, opening=1.0, growth=7.0, finetune=0.0, arrival=1.5, end=0.0, fade=0.0
+)
+
+
+def render_growth_loop(
+    run_dir: pathlib.Path = DEFAULT_RUN_DIR,
+    baseline_path: pathlib.Path = DEFAULT_BASELINE_PATH,
+    media_dir: pathlib.Path = DEFAULT_MEDIA_DIR,
+    settings: RenderSettings | None = None,
+    name: str = "morphology_continuation",
+    max_width: int = 800,
+) -> dict:
+    """Render the README loop — the body going 1x to 2x with nothing else in the way — as a GIF.
+
+    A GIF has to make its point in a few seconds on a page, so the loop compresses the path into
+    one continuous growth instead of cutting the fine-tuning stop out of the film. Nothing about
+    the walk changes: alpha is a coordinate on the path rather than a physical quantity, and the
+    robot is simulated and drawn in real time at every point of it. The intermediate video is
+    written to a scratch directory and only the GIF is kept.
+
+    Args:
+        run_dir: continuation run to visualise.
+        baseline_path: from-scratch run the fine-tune cost is measured against.
+        media_dir: directory the GIF is written to.
+        settings: resolution, frame rate and camera of the render.
+        name: stem of the GIF.
+        max_width: widest GIF accepted, in pixels.
+
+    Returns:
+        A report with the GIF path, its size in bytes and the loop's duration.
+    """
+    with tempfile.TemporaryDirectory() as scratch:
+        report = render_film(
+            run_dir=run_dir,
+            baseline_path=baseline_path,
+            media_dir=pathlib.Path(scratch),
+            settings=settings,
+            timing=GROWTH_LOOP_TIMING,
+            name=name,
+            make_gif=False,
+        )
+        gif = write_gif(
+            pathlib.Path(report["video"]),
+            pathlib.Path(media_dir) / f"{name}.gif",
+            0.0,
+            report["seconds"],
+            max_width=max_width,
+        )
+        return {
+            "gif": str(gif),
+            "gif_bytes": gif.stat().st_size,
+            "gif_seconds": report["seconds"],
+            "gif_fell_at": report["fell_at"],
+        }
 
 
 def preview_settings() -> tuple[RenderSettings, Timing]:
@@ -578,8 +645,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         settings=settings,
         timing=timing,
         name=arguments.name,
-        make_gif=not arguments.no_gif,
+        make_gif=False,
     )
+    if not arguments.no_gif:
+        report.update(
+            render_growth_loop(
+                run_dir=arguments.run_dir,
+                baseline_path=arguments.baseline,
+                media_dir=arguments.media_dir,
+                settings=settings,
+                name=arguments.name,
+            )
+        )
     print(json.dumps(report, indent=2))
     return 0
 
