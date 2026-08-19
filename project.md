@@ -172,3 +172,83 @@ Papers that ambushed the proposal and should be read before committing:
 - DexFormer, [arXiv 2602.08278](https://arxiv.org/abs/2602.08278) — passive morphology inference
   for hands
 - XEWorld, [arXiv 2608.05799](https://arxiv.org/abs/2608.05799) — embodiment forgetting
+
+---
+
+# Direction change (2026-08-09) — morphology continuation
+
+> Supersedes the probe-based "Handshake" idea above. That analysis is kept because its baselines
+> and refuted claims still apply.
+
+## The idea
+
+Several humanoids, similar in gross shape but not identical — different heights, link lengths,
+masses, torque limits, actuator dynamics, joint ranges. Train a locomotion policy by RL on robot A
+only. Direct deployment of A's policy on robot B is assumed to fail.
+
+Rather than jumping A → B, build a **continuous path through morphology space**. Take a small step
+(make A slightly taller, nudge masses and torques toward B). Test whether the policy still
+locomotes. If yes, step again. If not, fine-tune briefly — cheap, because the morphology barely
+moved since the last working point. Repeat until the morphology *is* robot B, carrying a
+continuously adapted policy with it. **The policy is walked from A to B through morphology space.**
+
+This is **numerical continuation** (homotopy): track a solution as a parameter is deformed, seeding
+each solve from the last. It is simultaneously a **self-paced curriculum over morphology**, with
+"does it still walk" as the pacing signal. Both framings bring machinery — predictor-corrector
+schemes, adaptive step size, arc-length parameterization — and a known failure mode that is
+scientifically interesting (bifurcation, below).
+
+## Extension: the sensor suite is also a continuation axis
+
+Not only shape. **Sensor placement and sensor characteristics** are part of the path:
+
+- IMU position and orientation on the body (pelvis → torso → head)
+- Joint encoder resolution, noise, bias, drift
+- Observation latency and update rate
+- Force/torque and contact sensor placement
+- Camera pose, field of view, resolution
+
+This axis may be *stronger* than pure morphology, for three reasons.
+
+**It escapes the dynamic-similarity trap.** Geometric scaling has an exact similarity theory
+(below), so parts of the morphology path may be trivially transferable. Sensor relocation has no
+such theory — moving an IMU changes the observation function with no compensating rescaling, so
+the policy genuinely has to adapt.
+
+**It is where policies are most brittle.** A locomotion policy reads gravity projection and angular
+rate from a specific body frame. Move that frame and every observation is a different function of
+the same state.
+
+**It makes topological changes continuous** — the key technical trick. Adding or removing a sensor
+is a discrete change in observation dimension, which a homotopy cannot cross. But it can be made
+continuous two ways: anneal the sensor's **noise** from effectively infinite (uninformative, i.e.
+absent) down to its real value, or anneal a multiplicative **gate** from 0 to 1. The same trick
+applies to degrees of freedom: a joint locked with very high stiffness is effectively absent, and
+annealing stiffness down **continuously grows a new DoF**. That converts changes in robot topology
+— different joint counts, different sensor suites — into paths a continuation method can follow.
+
+## Why the framing is strong, and where it breaks
+
+**The physics problem to confront first.** "Slightly taller" is underspecified. Scale length by k
+and dynamic similarity requires mass ~ k³, gravitational torque ~ k⁴, time ~ √k, with the Froude
+number v²/gL matched for gaits to correspond. A robot that grows with unchanged motors becomes
+weaker relative to its own weight. So morphology space has structure: paths **along** the
+dynamically-similar manifold may transfer almost free (and would make the method look good for an
+uninteresting reason), while paths **off** it — different torque density, actuator bandwidth, mass
+distribution — are where continuation earns its keep. Which directions are cheap and which are
+expensive, and what the cheapest A→B path is, is a geodesic question nobody appears to own.
+
+**Bifurcation is the interesting failure.** Continuation methods fail where the solution branch
+folds or splits; the robotics analogue is a morphology change forcing a qualitatively different
+gait — exactly the Froude-number-driven walk/trot/gallop transitions in biomechanics. Expect points
+where small morphology steps demand large policy changes. Detecting them is measurable (contact
+sequence, gait phase discontinuity) and predicting them from morphology parameters would be a real
+result.
+
+**The baseline that must be beaten.** Embodiment Scaling Laws (arXiv 2505.05753, CoRL 2025) trains
+on ~1,000 procedural bodies and transfers zero-shot to Go2 and H1, finding morphology *count* beats
+data per morphology. If plain randomization spanning A and B works, a careful path is wasted. The
+headline metric must be **total compute to a working B policy**, against: from-scratch on B, direct
+fine-tune A→B in one jump, and broad randomized pretraining.
+
+*(literature verdict, baselines and refuted directions pending — run in progress)*
