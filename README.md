@@ -1,112 +1,84 @@
 # generalist_robotics
 
-**One policy, many robots.** Pre-train a manipulation policy across several robot arms, then
-adapt it to a *new, unseen* arm with a fraction of the demonstrations and compute that training
-from scratch would need.
+**Walking a locomotion policy from one robot into another.** Instead of transferring a policy
+across the gap between two differently-shaped robots in one jump, deform the body *continuously* —
+and fine-tune only at the points where the policy actually falls over.
 
-This is the central bet of Physical Intelligence (π0.5, π0.7), Google DeepMind (Gemini Robotics
-1.5's Motion Transfer), NVIDIA GR00T, Skild, and Generalist AI. This project reproduces the core
-phenomenon — positive transfer across embodiments plus fast adaptation — at a scale that fits a
-single DGX Spark, and adds a measurement the large labs cannot easily make.
+![A locomotion policy carried into a body twice its size](media/morphology_continuation.gif)
 
-- **[plan.md](plan.md)** — paradigm, proposed stack, roadmap M0–M8, demo specification
-- **[research.md](research.md)** — living survey of generalist-robotics research (~1,500 lines)
-- **[supplement_research.md](supplement_research.md)** — method deep dives (how the algorithms work)
-- **[project.md](project.md)** — which direction to actually take, and why
-- **[coding_rule.md](coding_rule.md)** — repo conventions
-- **[progress/](progress/)** — daily logs
+*Berkeley Humanoid grown to 2× size while walking. Floor squares are 1.00 m; the posts mark the
+start hip height (0.515 m) and the target (1.030 m). Sped up; see the full video for timing.*
 
-## Status
+This is **numerical continuation** (homotopy) applied to policies, and simultaneously a self-paced
+curriculum over morphology where "does it still walk" is the pacing signal.
 
-**M0 — survey complete, direction under review.** The research survey is written and the
-simulation stack is verified on the target hardware (6 arms × 6 tasks all construct and step on
-the DGX Spark's aarch64 GB10). The experiment design below is a recommendation drawn from the
-survey; implementation has not started.
+## The result
 
-## The experiment
+A policy trained only on the base Berkeley Humanoid (160.6 M steps, reward 26.46, 0.449 m/s) was
+walked to a robot **twice its size** — mass ×8, torque ×16 — along the dynamic-similarity manifold:
 
-```
-  Panda ──┐
-  Sawyer ─┤   cross-embodiment          ┌─► UR5e   (near transfer: same class, 6 DoF)
-  IIWA ───┤   pre-training  ────────────┤
-  Kinova3 ┘   (one policy)              └─► Jaco   (far transfer)
-
-  measured against: training the new arm from scratch
-```
-
-The headline result will be a **success-vs-demonstrations** curve on the held-out arms, with the
-control most demos skip: *pretrained on one arm* alongside *pretrained on four*, so the claim is
-about multi-embodiment pretraining specifically rather than pretraining in general.
-
-The distinctive contribution is a **decomposition of the embodiment gap**. In simulation we can
-render one arm's appearance while executing another's kinematics — a factorial no real-robot lab
-can run — which separates *the robot looks different* from *the robot moves different* as causes
-of transfer failure.
-
-## Why the same task runs on every arm
-
-robosuite tasks are robot-agnostic, and the operational-space controller exposes a delta
-end-effector action space of identical width regardless of joint count. Verified here:
-
-| Arm | Joints (DoF) | Action width |
+| | fine-tune cost | outcome |
 |---|---|---|
-| Panda, Sawyer, IIWA, Kinova3, Jaco | 7 | 7 |
-| UR5e | 6 | 7 |
+| **On the similarity manifold** (torque ×16) | **6.55 M steps — 4.1% of training from scratch** | reached 2× size; 4 of 5 waypoints needed no fine-tuning at all |
+| **Off the manifold** (torque ×8, underpowered) | 118 M steps — 73% of from-scratch | **failed**, stalled at α=0.55 after three backtracks |
 
-That uniformity is exactly the "delta-EEF is transfer-friendly" convention the Open X-Embodiment
-literature relies on — and making the harder joint-space setting work is one of the planned
-ablations.
+Walking speed rose 0.448 → 0.594 m/s where dynamic similarity predicts ×√2 = 0.634, and the
+**Froude number stayed ≈0.035–0.040 across the whole sweep** — the invariant that lets a single
+viability threshold hold at every body size.
+
+The controlled pair is the point: the same geometric path is nearly free when the actuators scale
+with the body, and a wall when they do not. The off-manifold failure is a *survival* collapse
+(0.24–0.68) while speed holds at ~0.48 m/s — the underpowered giant walks fine, then falls.
+
+## Videos
+
+| | |
+|---|---|
+| `media/morphology_continuation.mp4` | 55 s, 1920×1080 @ 60 fps — the hero run, with the fine-tuning beat at α=0.475 |
+| `media/manifold_vs_underpowered.mp4` | 42 s, 1920×1080 @ 60 fps — success against failure, side by side |
+
+The mp4s are ~80 MB and ~60 MB and are **not committed**; regenerate them with
+`PYTHONPATH=src python -m generalist_robotics.viz.movie`.
+
+## Documents
+
+- **[plan.md](plan.md)** — the paradigm, milestones, and what must be beaten
+- **[project.md](project.md)** — how this direction was chosen, and the eight that were refuted
+- **[research.md](research.md)** — living survey of generalist robotics (~1,500 lines, citations verified)
+- **[supplement_research.md](supplement_research.md)** — method deep dives
+- **[coding_rule.md](coding_rule.md)** — repo conventions · **[progress/](progress/)** — daily logs
+
+## Layout
+
+```
+src/generalist_robotics/
+  morphology/   scale a MuJoCo model in size, mass and torque (similarity-exact)
+  envs/         Playground locomotion envs carrying the morph into MJX
+  evaluation/   rollout statistics and the Froude-based viability test
+  training/     PPO, checkpointing, and warm-started fine-tuning
+  continuation/ the predictor-corrector walk through morphology space
+  viz/          rendering, HUD, and video encoding
+  runtime/      GPU memory guards (read the warning below)
+  manipulation/ deferred robosuite work
+```
 
 ## Setup
 
 ```bash
-conda create -n genrobo python=3.11 -y
-conda activate genrobo
+conda create -n genrobo python=3.11 -y && conda activate genrobo
 pip install -r requirements.txt
-```
-
-Headless rendering needs `MUJOCO_GL=egl` (the `osmesa` backend is unavailable on this machine).
-
-```bash
 MUJOCO_GL=egl PYTHONPATH=src python -m unittest discover -s src -p "test_*.py"
 ```
 
-**MuJoCo must stay pinned to 3.3.7** — robosuite 1.5.2 calls `MjData.qM`, which was removed in
-MuJoCo 3.11.
-
-## Reading the research survey
-
-`research.md` renders as a styled page with a section rail and verification badges:
-
-```bash
-python tools/build_research_page.py        # regenerate after editing research.md
-python tools/serve.py --host 127.0.0.1
-# open http://127.0.0.1:8765/research_page.html
-```
-
-**To read it from another machine on the tailnet** (e.g. a laptop, while the repo lives on the
-Spark), bind to the Tailscale address instead of loopback:
-
-```bash
-python tools/serve.py          # binds to the tailnet address by default
-# then browse to http://spark-ddbc:8765/research_page.html
-```
-
-That keeps the page on the private tailnet rather than exposing it to the LAN or the internet.
-
-Stop it with Ctrl-C, or from another shell `pkill -f "[t]ools/serve.py"` — the bracket keeps the
-pattern from matching (and killing) the shell running the command. GitHub also renders
-[research.md](research.md) directly, tables and all.
-
+Headless rendering needs `MUJOCO_GL=egl`. Set `GENROBO_SKIP_SLOW_TESTS=1` to skip the long paths.
 
 ## GPU memory on unified-memory hardware (read before running anything)
 
-The DGX Spark shares one pool of memory between CPU and GPU. JAX preallocates **75% of "GPU"
-memory** by default, which on this machine means a single process reserves **116.5 GiB of the
-121 GiB total**. Two concurrent JAX processes exhaust the machine, then block in D-state inside
-the NVIDIA driver where the kernel OOM killer cannot reap them — so the box wedges and needs a
-hard reboot rather than merely losing the job. This happened on 2026-08-19 (three concurrent
-processes; `total_vm` of 369 GiB and 146 GiB in the OOM report).
+The DGX Spark shares one memory pool between CPU and GPU. JAX preallocates **75% of "GPU"
+memory**, so a single process reserves **116.5 GiB of the 121 GiB total**. Two concurrent JAX
+processes exhaust the machine and then block in D-state inside the NVIDIA driver, where the kernel
+OOM killer cannot reap them — the host wedges and needs a hard reboot. This happened on
+2026-08-19.
 
 `import generalist_robotics` applies the guard automatically:
 
@@ -115,18 +87,9 @@ processes; `total_vm` of 369 GiB and 146 GiB in the OOM report).
 | JAX default | 116.5 GiB | 91.3 GiB |
 | with guard | **22.1 GiB** | **30.4 GiB** |
 
-Set the same values in a shell that imports `jax` directly, before the import:
-
-```bash
-export XLA_PYTHON_CLIENT_PREALLOCATE=false
-export XLA_PYTHON_CLIENT_MEM_FRACTION=0.25
-```
-
-**Never run two GPU jobs at once.** `generalist_robotics.runtime.gpu.gpu_lock()` enforces this
-with an advisory file lock; wrap any training or sweep entry point in it.
+**Never run two GPU jobs at once.** `runtime.gpu.gpu_lock()` enforces it with an advisory lock.
 
 ## Hardware
 
-NVIDIA DGX Spark: GB10, 128 GB unified memory, aarch64, sm_121, ~273 GB/s bandwidth. Memory is
-generous enough for full fine-tunes that normally require an A100-80GB; bandwidth is the binding
-constraint, so sub-1B models are where research iteration stays fast.
+NVIDIA DGX Spark: GB10, 128 GB unified memory, aarch64, sm_121. Measured here: MJX trains the
+Berkeley Humanoid at **~148k env-steps/s**, so a full 150 M-step run takes **~22 minutes**.
