@@ -89,9 +89,8 @@ class GpuLockTest(unittest.TestCase):
         child.start()
         try:
             self.assertTrue(started.wait(timeout=60), "child never acquired the lock")
-            with self.assertRaises(gpu.GpuBusyError):
-                with gpu.gpu_lock():
-                    pass
+            with self.assertRaises(gpu.GpuBusyError), gpu.gpu_lock():
+                pass
         finally:
             release.set()
             child.join(timeout=30)
