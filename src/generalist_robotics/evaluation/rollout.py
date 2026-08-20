@@ -1,8 +1,8 @@
 """Rollout harness answering whether a policy still locomotes on a given morphology."""
 
 import dataclasses
-import inspect
 import functools
+import inspect
 from collections.abc import Callable
 from typing import Any, NamedTuple
 
