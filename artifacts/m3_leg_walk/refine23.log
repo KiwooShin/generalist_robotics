@@ -1,0 +1,6 @@
+{
+  "reached_target": true,
+  "total_finetune_steps": 4915200,
+  "wall_clock_seconds": 1153.9481010760064,
+  "num_waypoints": 41
+}

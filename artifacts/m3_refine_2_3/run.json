@@ -1,0 +1,2896 @@
+{
+  "spec": {
+    "n_legs": 4,
+    "leg_length": 0.5,
+    "torso_mass": 8.0,
+    "leg_mass": 1.5,
+    "hip_spacing": 0.15
+  },
+  "reached_target": true,
+  "total_finetune_steps": 4915200,
+  "wall_clock_seconds": 1153.9481010760064,
+  "num_waypoints": 41,
+  "num_accepted_waypoints": 41,
+  "waypoints": [
+    {
+      "record": "waypoint",
+      "index": 0,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4771560728549957,
+        "mean_forward_speed": 0.4773019254207611,
+        "distance_travelled": 4.7715606689453125,
+        "net_displacement": 4.499436855316162,
+        "episode_return": 42.361793518066406,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.0,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.8750000000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.31925,
+      "gait": {
+        "duty_factors": [
+          0.5575,
+          0.595,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.49069997989096226,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.462364038716385
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 1,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4786287248134613,
+        "mean_forward_speed": 0.47877413034439087,
+        "distance_travelled": 4.786287307739258,
+        "net_displacement": 4.538227081298828,
+        "episode_return": 42.370582580566406,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.025,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.8781250000000002
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.32391875,
+      "gait": {
+        "duty_factors": [
+          0.5575,
+          0.5975,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.48927557616735284,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4658462623118993
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 2,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4786555767059326,
+        "mean_forward_speed": 0.47881650924682617,
+        "distance_travelled": 4.786555767059326,
+        "net_displacement": 4.515684127807617,
+        "episode_return": 42.33367919921875,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.05,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.8812500000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.328587500000001,
+      "gait": {
+        "duty_factors": [
+          0.5575,
+          0.5975,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.48927557616735284,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4658462623118993
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 3,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4789518415927887,
+        "mean_forward_speed": 0.4791123569011688,
+        "distance_travelled": 4.789518356323242,
+        "net_displacement": 4.515543460845947,
+        "episode_return": 42.3392219543457,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.07500000000000001,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.8843750000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.333256250000002,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.6075,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4843401435140637,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4717099855090063
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 4,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48100540041923523,
+        "mean_forward_speed": 0.4811626374721527,
+        "distance_travelled": 4.810053825378418,
+        "net_displacement": 4.55633544921875,
+        "episode_return": 42.377906799316406,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.1,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.8875000000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.337925,
+      "gait": {
+        "duty_factors": [
+          0.5575,
+          0.6,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4911964571417503,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4692479079568164
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 5,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4813086986541748,
+        "mean_forward_speed": 0.48145896196365356,
+        "distance_travelled": 4.813086986541748,
+        "net_displacement": 4.564970016479492,
+        "episode_return": 42.41239929199219,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.125,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.8906250000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.34259375,
+      "gait": {
+        "duty_factors": [
+          0.56,
+          0.6025,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4883254826764357,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4762005332316588
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 6,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4806249141693115,
+        "mean_forward_speed": 0.48076677322387695,
+        "distance_travelled": 4.806249141693115,
+        "net_displacement": 4.540918350219727,
+        "episode_return": 42.52870559692383,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.15,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.89375
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.3472625,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5925,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4912799662671312,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4508346623063078
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 7,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4815830886363983,
+        "mean_forward_speed": 0.4817229211330414,
+        "distance_travelled": 4.815830707550049,
+        "net_displacement": 4.563333511352539,
+        "episode_return": 42.62938690185547,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.175,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.8968750000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.35193125,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5775,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4269199042614051
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 8,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4823625683784485,
+        "mean_forward_speed": 0.48249951004981995,
+        "distance_travelled": 4.823625564575195,
+        "net_displacement": 4.551640510559082,
+        "episode_return": 42.613670349121094,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.19999999999999998,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9000000000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.3566,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5775,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4269199042614051
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 9,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48451462388038635,
+        "mean_forward_speed": 0.48464828729629517,
+        "distance_travelled": 4.845146179199219,
+        "net_displacement": 4.599320888519287,
+        "episode_return": 42.62019348144531,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.22499999999999998,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9031250000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.36126875,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.58,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5012652128235352,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.431125851652267
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 10,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48495766520500183,
+        "mean_forward_speed": 0.48508378863334656,
+        "distance_travelled": 4.849576473236084,
+        "net_displacement": 4.606312274932861,
+        "episode_return": 42.61228561401367,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.24999999999999997,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9062500000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.365937500000001,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5775,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4269199042614051
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 11,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48571261763572693,
+        "mean_forward_speed": 0.48582449555397034,
+        "distance_travelled": 4.857126235961914,
+        "net_displacement": 4.591610908508301,
+        "episode_return": 42.577796936035156,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.27499999999999997,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.909375
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.37060625,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5825,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5026383725916919,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.435242274548985
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 12,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4882585108280182,
+        "mean_forward_speed": 0.48836812376976013,
+        "distance_travelled": 4.882585048675537,
+        "net_displacement": 4.6514081954956055,
+        "episode_return": 42.5789794921875,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.3,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9125000000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.375275,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5825,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5026383725916919,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.435242274548985
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 13,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4891972243785858,
+        "mean_forward_speed": 0.4892823398113251,
+        "distance_travelled": 4.891972064971924,
+        "net_displacement": 4.654852390289307,
+        "episode_return": 42.5895881652832,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.325,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9156250000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.37994375,
+      "gait": {
+        "duty_factors": [
+          0.555,
+          0.5825,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5014643884041,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.43952131027712
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 14,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.49149617552757263,
+        "mean_forward_speed": 0.4915646016597748,
+        "distance_travelled": 4.914961814880371,
+        "net_displacement": 4.784388542175293,
+        "episode_return": 42.43730163574219,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.35000000000000003,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.91875
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.3846125,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5875,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.503414482737058,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4432110269845064
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 15,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.492058664560318,
+        "mean_forward_speed": 0.49212613701820374,
+        "distance_travelled": 4.920586585998535,
+        "net_displacement": 4.81650972366333,
+        "episode_return": 42.423126220703125,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.37500000000000006,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9218750000000002
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.38928125,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.61,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.51625,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4749069944755693
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 16,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.49447327852249146,
+        "mean_forward_speed": 0.4945320785045624,
+        "distance_travelled": 4.944732666015625,
+        "net_displacement": 4.841108798980713,
+        "episode_return": 42.36521911621094,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.4000000000000001,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.925
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.39395,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.6075,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5150277411386666,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4717099855090063
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 17,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.49494215846061707,
+        "mean_forward_speed": 0.49499255418777466,
+        "distance_travelled": 4.949421405792236,
+        "net_displacement": 4.868878364562988,
+        "episode_return": 42.360382080078125,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.4250000000000001,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9281250000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.39861875,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.6075,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5150277411386666,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4717099855090063
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 18,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4963808059692383,
+        "mean_forward_speed": 0.4964299201965332,
+        "distance_travelled": 4.963808059692383,
+        "net_displacement": 4.904511451721191,
+        "episode_return": 42.295372009277344,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.4500000000000001,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.93125
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.403287500000001,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.61,
+          0.0,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5162500000000001,
+          0.0,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4749069944755693
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 19,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4979354441165924,
+        "mean_forward_speed": 0.4979708790779114,
+        "distance_travelled": 4.979354381561279,
+        "net_displacement": 4.9071760177612305,
+        "episode_return": 42.734642028808594,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.47500000000000014,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9343750000000002
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.407956250000002,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.61,
+          0.0025,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5162500000000001,
+          0.10250000000000006,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.4935417640926931
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 20,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.49948903918266296,
+        "mean_forward_speed": 0.49952346086502075,
+        "distance_travelled": 4.994890213012695,
+        "net_displacement": 4.9471259117126465,
+        "episode_return": 43.982818603515625,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.5000000000000001,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9375
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.412625,
+      "gait": {
+        "duty_factors": [
+          0.555,
+          0.61,
+          0.065,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5048722266590803,
+          0.26143991918250575,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.6381265564704937
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 21,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4998684823513031,
+        "mean_forward_speed": 0.49989864230155945,
+        "distance_travelled": 4.998684883117676,
+        "net_displacement": 4.918124198913574,
+        "episode_return": 43.83980941772461,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.5250000000000001,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.940625
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.41729375,
+      "gait": {
+        "duty_factors": [
+          0.555,
+          0.61,
+          0.0675,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5124745543527915,
+          0.2388187321846396,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.6395663249032975
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 22,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.5005382895469666,
+        "mean_forward_speed": 0.5005680918693542,
+        "distance_travelled": 5.005382537841797,
+        "net_displacement": 4.820855140686035,
+        "episode_return": 43.52571105957031,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.5500000000000002,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9437500000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.4219625,
+      "gait": {
+        "duty_factors": [
+          0.565,
+          0.61,
+          0.105,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4995231929675109,
+          0.24870326347746788,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 1.7864159270061442
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 23,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.5037451982498169,
+        "mean_forward_speed": 0.5037698149681091,
+        "distance_travelled": 5.03745174407959,
+        "net_displacement": 4.758472442626953,
+        "episode_return": 43.454627990722656,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.5750000000000002,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9468750000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.42663125,
+      "gait": {
+        "duty_factors": [
+          0.5675,
+          0.6,
+          0.105,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4925505072193229,
+          0.23351759033882882,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 1.7393642489052288
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 24,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.5046959519386292,
+        "mean_forward_speed": 0.5047174692153931,
+        "distance_travelled": 5.046959400177002,
+        "net_displacement": 4.742884159088135,
+        "episode_return": 43.383296966552734,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.6000000000000002,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9500000000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.4313,
+      "gait": {
+        "duty_factors": [
+          0.57,
+          0.59,
+          0.125,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5008486422879124,
+          0.2428893862635829,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 1.886498847341589
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 25,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.5052919387817383,
+        "mean_forward_speed": 0.5053131580352783,
+        "distance_travelled": 5.052919387817383,
+        "net_displacement": 4.722476959228516,
+        "episode_return": 43.23515319824219,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.6250000000000002,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.953125
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.43596875,
+      "gait": {
+        "duty_factors": [
+          0.565,
+          0.59,
+          0.1425,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4988732706969137,
+          0.2419065001532159,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 1.9431197306931698
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 26,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.5024881362915039,
+        "mean_forward_speed": 0.5025035738945007,
+        "distance_travelled": 5.024881362915039,
+        "net_displacement": 4.690873146057129,
+        "episode_return": 43.465972900390625,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.6500000000000002,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.95625
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.440637500000001,
+      "gait": {
+        "duty_factors": [
+          0.5575,
+          0.5825,
+          0.135,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.49828921560761397,
+          0.24427645540883136,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 1.9067899664335402
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 27,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.49808675050735474,
+        "mean_forward_speed": 0.49810218811035156,
+        "distance_travelled": 4.980867385864258,
+        "net_displacement": 4.726009368896484,
+        "episode_return": 43.64286422729492,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.6750000000000003,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9593750000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.44530625,
+      "gait": {
+        "duty_factors": [
+          0.555,
+          0.59,
+          0.1475,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5005228813493368,
+          0.24974080427568335,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 1.9612697523311802
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 28,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.49585849046707153,
+        "mean_forward_speed": 0.49587389826774597,
+        "distance_travelled": 4.958584785461426,
+        "net_displacement": 4.891797065734863,
+        "episode_return": 43.278785705566406,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.7000000000000003,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9625000000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.449975,
+      "gait": {
+        "duty_factors": [
+          0.56,
+          0.595,
+          0.155,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4996182917666673,
+          0.25842531988197226,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 1.992509570438477
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 29,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4931819438934326,
+        "mean_forward_speed": 0.49319735169410706,
+        "distance_travelled": 4.931819438934326,
+        "net_displacement": 4.8798699378967285,
+        "episode_return": 43.17388153076172,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.7250000000000003,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9656250000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.45464375,
+      "gait": {
+        "duty_factors": [
+          0.56,
+          0.6075,
+          0.16,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5063147629475104,
+          0.26665743194169955,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.0239340584432552
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 30,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48903733491897583,
+        "mean_forward_speed": 0.4890526235103607,
+        "distance_travelled": 4.890373229980469,
+        "net_displacement": 4.85801362991333,
+        "episode_return": 43.10179901123047,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.7500000000000003,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.96875
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.4593125,
+      "gait": {
+        "duty_factors": [
+          0.55,
+          0.6125,
+          0.165,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5091051458966662,
+          0.2676696110179623,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.030909057472854
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 31,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48669442534446716,
+        "mean_forward_speed": 0.4867098033428192,
+        "distance_travelled": 4.866944313049316,
+        "net_displacement": 4.844106197357178,
+        "episode_return": 43.13309097290039,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.7750000000000004,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.971875
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.46398125,
+      "gait": {
+        "duty_factors": [
+          0.5475,
+          0.6175,
+          0.1775,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5001434030381577,
+          0.2668402758195295,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.054018776480059
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 32,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48315659165382385,
+        "mean_forward_speed": 0.4831719398498535,
+        "distance_travelled": 4.831565856933594,
+        "net_displacement": 4.870550632476807,
+        "episode_return": 43.177818298339844,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.8000000000000004,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9750000000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.46865,
+      "gait": {
+        "duty_factors": [
+          0.5325,
+          0.615,
+          0.175,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5013556989131535,
+          0.2587742986354293,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.0300972082507043
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 33,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4810681939125061,
+        "mean_forward_speed": 0.48108139634132385,
+        "distance_travelled": 4.8106818199157715,
+        "net_displacement": 4.949199676513672,
+        "episode_return": 42.69369125366211,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.8250000000000004,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9781250000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.47331875,
+      "gait": {
+        "duty_factors": [
+          0.53,
+          0.645,
+          0.235,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5047928983216867,
+          0.2563930447438314,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.21633125106125
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 34,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48333415389060974,
+        "mean_forward_speed": 0.4833471477031708,
+        "distance_travelled": 4.833341598510742,
+        "net_displacement": 5.156459808349609,
+        "episode_return": 42.00012969970703,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.8500000000000004,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9812500000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.477987500000001,
+      "gait": {
+        "duty_factors": [
+          0.52,
+          0.645,
+          0.2525,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5000528158318625,
+          0.24843464756045966,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.236505002958736
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 35,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.48491793870925903,
+        "mean_forward_speed": 0.48492851853370667,
+        "distance_travelled": 4.849179267883301,
+        "net_displacement": 5.1678924560546875,
+        "episode_return": 41.60179138183594,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.8750000000000004,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9843750000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.48265625,
+      "gait": {
+        "duty_factors": [
+          0.505,
+          0.6525,
+          0.29,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5030012514627837,
+          0.25640605889270895,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.29305533257659
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 36,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4877927899360657,
+        "mean_forward_speed": 0.48780328035354614,
+        "distance_travelled": 4.877927780151367,
+        "net_displacement": 4.97481107711792,
+        "episode_return": 40.785037994384766,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.9000000000000005,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9875
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.487325,
+      "gait": {
+        "duty_factors": [
+          0.5075,
+          0.6525,
+          0.3025,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4971679886116858,
+          0.24809088446436323,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.306535130137299
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 37,
+      "viable_before": false,
+      "accepted": true,
+      "finetune_steps": 4915200,
+      "cumulative_steps": 4915200,
+      "stats_before": {
+        "survived_fraction": 0.7727500200271606,
+        "mean_forward_velocity": 0.5019446015357971,
+        "mean_forward_speed": 0.5019581913948059,
+        "distance_travelled": 3.878777027130127,
+        "net_displacement": 3.859224796295166,
+        "episode_return": 29.65468978881836,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.46418219804763794,
+        "mean_forward_speed": 0.4641927182674408,
+        "distance_travelled": 4.64182186126709,
+        "net_displacement": 4.662950038909912,
+        "episode_return": 46.079872131347656,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.9250000000000005,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9906250000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.49199375,
+      "gait": {
+        "duty_factors": [
+          0.5525,
+          0.5825,
+          0.22,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5022648499491937,
+          0.40801080929415634,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 2.005510151028286
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 38,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 4915200,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.47477206587791443,
+        "mean_forward_speed": 0.4747825562953949,
+        "distance_travelled": 4.747720718383789,
+        "net_displacement": 4.798184871673584,
+        "episode_return": 45.58960723876953,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.9500000000000005,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.99375
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.4966625,
+      "gait": {
+        "duty_factors": [
+          0.56,
+          0.6075,
+          0.2525,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.5130183780771744,
+          0.3663466396341372,
+          0.0
+        ],
+        "stride_frequency": 1.625,
+        "contact_sequence_entropy": 2.145275591082557
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 39,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 4915200,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4842807948589325,
+        "mean_forward_speed": 0.48429128527641296,
+        "distance_travelled": 4.842807769775391,
+        "net_displacement": 4.807306289672852,
+        "episode_return": 45.295780181884766,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 0.9750000000000005,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 0.9968750000000001
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.50133125,
+      "gait": {
+        "duty_factors": [
+          0.5675,
+          0.5925,
+          0.2575,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.499454180569466,
+          0.4043924653353358,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.1116072167250324
+      }
+    },
+    {
+      "record": "waypoint",
+      "index": 40,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 4915200,
+      "stats_before": {
+        "survived_fraction": 1.0,
+        "mean_forward_velocity": 0.4906671643257141,
+        "mean_forward_speed": 0.4906775653362274,
+        "distance_travelled": 4.906671524047852,
+        "net_displacement": 4.905808448791504,
+        "episode_return": 45.29435348510742,
+        "nominal_leg_length": 0.512668,
+        "num_episodes": 8,
+        "num_steps": 4000
+      },
+      "stats_after": null,
+      "gait_trace_steps": 400,
+      "checkpoint": null,
+      "alpha": 1.0,
+      "spec": {
+        "n_legs": 4,
+        "leg_length": 0.5,
+        "torso_mass": 8.0,
+        "leg_mass": 1.5,
+        "hip_spacing": 0.15
+      },
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "growth": [
+        {
+          "leg_index": 0,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 1,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 2,
+          "growth": 1.0
+        },
+        {
+          "leg_index": 3,
+          "growth": 0.0
+        }
+      ],
+      "total_mass": 12.506,
+      "gait": {
+        "duty_factors": [
+          0.555,
+          0.5825,
+          0.265,
+          0.0
+        ],
+        "phase_offsets": [
+          0.0,
+          0.4990771323405283,
+          0.3609212991412408,
+          0.0
+        ],
+        "stride_frequency": 1.75,
+        "contact_sequence_entropy": 2.1360271290607438
+      }
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "alpha": 0.9250000000000005,
+  "spec": {
+    "n_legs": 4,
+    "leg_length": 0.5,
+    "torso_mass": 8.0,
+    "leg_mass": 1.5,
+    "hip_spacing": 0.15
+  },
+  "params": {
+    "size_scale": 1.0,
+    "mass_scale": 1.0,
+    "torque_scale": 1.0
+  },
+  "growth": [
+    {
+      "leg_index": 0,
+      "growth": 1.0
+    },
+    {
+      "leg_index": 1,
+      "growth": 1.0
+    },
+    {
+      "leg_index": 2,
+      "growth": 0.9906250000000001
+    },
+    {
+      "leg_index": 3,
+      "growth": 0.0
+    }
+  ],
+  "total_mass": 12.49199375,
+  "gait": {
+    "duty_factors": [
+      0.5525,
+      0.5825,
+      0.22,
+      0.0
+    ],
+    "phase_offsets": [
+      0.0,
+      0.5022648499491937,
+      0.40801080929415634,
+      0.0
+    ],
+    "stride_frequency": 1.625,
+    "contact_sequence_entropy": 2.005510151028286
+  }
+}

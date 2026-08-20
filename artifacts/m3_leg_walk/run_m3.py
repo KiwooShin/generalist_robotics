@@ -20,6 +20,7 @@ import numpy as np
 import generalist_robotics  # noqa: F401  caps JAX memory before any backend starts
 from generalist_robotics.analysis import gait
 from generalist_robotics.continuation import leg_path
+from generalist_robotics.continuation.path import CHECKPOINT_PREFIX
 from generalist_robotics.evaluation.rollout import evaluate_policy, froude_number, is_viable
 from generalist_robotics.morphology.multiped import LegGrowth, MultipedSpec
 from generalist_robotics.training import ppo
@@ -29,6 +30,8 @@ BASELINE_DIR = ROOT / "m3_biped_policy"
 WALK23_DIR = ROOT / "m3_leg_walk_2_3"
 WALK34_DIR = ROOT / "m3_leg_walk_3_4"
 JUMP_DIR = ROOT / "m3_one_jump"
+REFINE23_DIR = ROOT / "m3_refine_2_3"
+REFINE34_DIR = ROOT / "m3_refine_3_4"
 ANALYSIS_DIR = ROOT / "m3_analysis"
 
 # The superset body: four legs at the compass points of a hip ring, indexed left, right,
@@ -57,6 +60,15 @@ MAX_FINETUNE_ROUNDS = 3
 STEP_ALPHA = 0.125
 MIN_STEP_ALPHA = 0.05
 MAX_STEP_ALPHA = 0.15
+
+# A leg only reaches the floor in the last few percent of its growth: its foot hangs a
+# fixed fraction of its own length below the hip, so at 0.9 of full length it is five
+# centimetres short of the ground however the knee is held. The whole load transfer
+# therefore happens inside one coarse step, which is too little resolution to say whether
+# the gait crosses it smoothly. The refine stage re-walks that last interval at
+# REFINE_STEP_ALPHA, warm starting from the coarse waypoint that precedes it.
+REFINE_STEP_ALPHA = 0.025
+REFINE_RECORD_FILENAME = "refine.json"
 
 
 def report(directory: pathlib.Path, growth: tuple[LegGrowth, ...], params: object, extra: dict):
@@ -183,6 +195,75 @@ def run_walk34() -> None:
     run_walk(WALK34_DIR, WALK23_DIR / "final", TRIPOD, QUADRUPED)
 
 
+def last_interior_waypoint(walk: pathlib.Path) -> tuple[int, float]:
+    """Index and alpha of the accepted waypoint a finished walk arrived at 1.0 from."""
+    document = json.loads((walk / "run.json").read_text())
+    interior = [w for w in document["waypoints"] if w["accepted"] and w["alpha"] < 1.0]
+    if not interior:
+        raise SystemExit(f"{walk} has no accepted waypoint before its target to refine from")
+    last = interior[-1]
+    return int(last["index"]), float(last["alpha"])
+
+
+def run_refine(
+    directory: pathlib.Path, walk: pathlib.Path, leg: int, grown: tuple[LegGrowth, ...]
+) -> None:
+    """Re-walk the last interval of one leg's growth finely, to resolve its touchdown.
+
+    Args:
+        directory: where the refined walk's artefacts go.
+        walk: the finished coarse walk to refine the last interval of.
+        leg: the leg being grown in.
+        grown: growth of every other leg, held fixed across the refinement.
+    """
+    index, from_alpha = last_interior_waypoint(walk)
+    params, _ = ppo.load_checkpoint(walk / f"{CHECKPOINT_PREFIX}_{index:03d}")
+    start = (*grown, LegGrowth(leg, from_alpha))
+    end = (*grown, LegGrowth(leg, 1.0))
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / REFINE_RECORD_FILENAME).write_text(
+        json.dumps({"walk": str(walk), "from_alpha": from_alpha, "leg": leg}, indent=2)
+    )
+    result = leg_path.walk_leg_path(
+        spec=SPEC,
+        start_growth=start,
+        end_growth=end,
+        init_policy_params=params,
+        step_alpha=REFINE_STEP_ALPHA,
+        min_step_alpha=REFINE_STEP_ALPHA,
+        finetune_timesteps=FINETUNE_TIMESTEPS,
+        max_finetune_rounds=MAX_FINETUNE_ROUNDS,
+        num_eval_episodes=EVAL_EPISODES,
+        seed=SEED,
+        log_path=directory / "run.jsonl",
+        checkpoint_dir=directory,
+        max_step_alpha=REFINE_STEP_ALPHA,
+    )
+    leg_path.save_leg_run_log(result, SPEC, directory / "run.json")
+    print(
+        json.dumps(
+            {
+                "reached_target": result.reached_target,
+                "total_finetune_steps": result.total_finetune_steps,
+                "wall_clock_seconds": result.wall_clock_seconds,
+                "num_waypoints": len(result.waypoints),
+            },
+            indent=2,
+        ),
+        flush=True,
+    )
+
+
+def run_refine23() -> None:
+    """Resolve the rear leg's touchdown over the coarse walk's last interval."""
+    run_refine(REFINE23_DIR, WALK23_DIR, 2, (LegGrowth(3, 0.0),))
+
+
+def run_refine34() -> None:
+    """Resolve the front leg's touchdown over the coarse walk's last interval."""
+    run_refine(REFINE34_DIR, WALK34_DIR, 3, (LegGrowth(2, 1.0),))
+
+
 def walk_step_cost() -> int:
     """Environment steps the two walks spent between them, which the control must match."""
     total = 0
@@ -240,17 +321,62 @@ def walk_gait_path(directory: pathlib.Path, offset: float) -> tuple[list, list]:
     return signatures, alphas
 
 
+def gait_path_segments() -> list[tuple[pathlib.Path, float, float]]:
+    """The finished walks in path order, each with the offset and span its alphas map to.
+
+    The two coarse walks lay end to end on a 0-to-2 axis, one unit per leg grown. Where a
+    refinement of a walk's last interval exists, its own 0-to-1 coordinate is folded into
+    that interval, so the combined path is sampled finely exactly where the new leg takes
+    load and coarsely where nothing touches the ground.
+    """
+    segments = []
+    for walk, refine, offset in (
+        (WALK23_DIR, REFINE23_DIR, 0.0),
+        (WALK34_DIR, REFINE34_DIR, 1.0),
+    ):
+        segments.append((walk, offset, 1.0))
+        if (refine / "run.json").exists():
+            start = float(json.loads((refine / REFINE_RECORD_FILENAME).read_text())["from_alpha"])
+            segments.append((refine, offset + start, 1.0 - start))
+    return segments
+
+
+def endpoint_comparison() -> dict | None:
+    """Compare the two policies that end on the same four-legged body, if both exist.
+
+    The walk and the one-jump control finish on identical hardware, so the distance
+    between their gaits is a statement about gait space alone: it says whether the two
+    routes to a quadruped land in the same gait or in different ones, and a distance that
+    clears MIN_BIFURCATION_JUMP while every step of the walk stays far below it says the
+    two are separated by a gap the walk never crossed.
+    """
+    walk = WALK34_DIR / "summary.json"
+    jump = JUMP_DIR / "summary.json"
+    if not (walk.exists() and jump.exists()):
+        return None
+    walk_gait = json.loads(walk.read_text())["gait"]
+    jump_gait = json.loads(jump.read_text())["gait"]
+    if walk_gait is None or jump_gait is None:
+        return None
+    first = gait.GaitSignature(**walk_gait)
+    second = gait.GaitSignature(**jump_gait)
+    return {
+        "walk_gait": walk_gait,
+        "jump_gait": jump_gait,
+        "distance": gait.gait_distance(first, second),
+        "components": gait.gait_distance_components(first, second),
+    }
+
+
 def run_analyse() -> None:
-    """Stage 5: read both walks' recorded gaits for a qualitative jump."""
-    signatures: list = []
-    alphas: list[float] = []
-    for directory, offset in ((WALK23_DIR, 0.0), (WALK34_DIR, 1.0)):
-        walk_signatures, walk_alphas = walk_gait_path(directory, offset)
+    """Stage 5: read the recorded gaits of the whole two-to-four path for a qualitative jump."""
+    measured: dict[float, object] = {}
+    for directory, offset, span in gait_path_segments():
+        walk_signatures, walk_alphas = walk_gait_path(directory, 0.0)
         for signature, alpha in zip(walk_signatures, walk_alphas, strict=True):
-            if alphas and alpha <= alphas[-1]:
-                continue
-            signatures.append(signature)
-            alphas.append(alpha)
+            measured[round(offset + alpha * span, 6)] = signature
+    alphas = sorted(measured)
+    signatures = [measured[alpha] for alpha in alphas]
     if len(signatures) < 2:
         raise SystemExit(
             f"only {len(signatures)} waypoints carry a gait, so there is nothing to compare; "
@@ -272,9 +398,11 @@ def run_analyse() -> None:
         "signatures": [dataclasses.asdict(signature) for signature in signatures],
         "steps": steps,
         "median_rate": float(np.median(rates)),
+        "largest_step": max(steps, key=lambda step: step["distance"]),
         "bifurcation_alphas": gait.detect_bifurcation(signatures, alphas),
         "min_bifurcation_jump": gait.MIN_BIFURCATION_JUMP,
         "bifurcation_rate_factor": gait.BIFURCATION_RATE_FACTOR,
+        "walk_versus_jump": endpoint_comparison(),
     }
     ANALYSIS_DIR.mkdir(parents=True, exist_ok=True)
     (ANALYSIS_DIR / "bifurcation.json").write_text(json.dumps(document, indent=2))
@@ -285,6 +413,8 @@ STAGES = {
     "baseline": run_baseline,
     "walk23": run_walk23,
     "walk34": run_walk34,
+    "refine23": run_refine23,
+    "refine34": run_refine34,
     "jump": run_jump,
     "analyse": run_analyse,
 }

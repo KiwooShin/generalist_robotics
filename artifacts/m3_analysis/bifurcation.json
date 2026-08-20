@@ -1,0 +1,435 @@
+{
+  "alphas": [
+    0.0,
+    0.125,
+    0.275,
+    0.425,
+    0.575,
+    0.725,
+    0.875,
+    1.0,
+    1.125,
+    1.25,
+    1.4,
+    1.55,
+    1.7,
+    1.85,
+    2.0
+  ],
+  "signatures": [
+    {
+      "duty_factors": [
+        0.555,
+        0.5775,
+        0.0,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.49939372933353754,
+        0.0,
+        0.0
+      ],
+      "stride_frequency": 1.625,
+      "contact_sequence_entropy": 1.431333790935831
+    },
+    {
+      "duty_factors": [
+        0.555,
+        0.5775,
+        0.0,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.4988260158124081,
+        0.0,
+        0.0
+      ],
+      "stride_frequency": 1.625,
+      "contact_sequence_entropy": 1.431333790935831
+    },
+    {
+      "duty_factors": [
+        0.555,
+        0.6025,
+        0.0,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.4875848823225403,
+        0.0,
+        0.0
+      ],
+      "stride_frequency": 1.625,
+      "contact_sequence_entropy": 1.4688622503179096
+    },
+    {
+      "duty_factors": [
+        0.62,
+        0.5925,
+        0.0,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.4944468220780187,
+        0.0,
+        0.0
+      ],
+      "stride_frequency": 1.625,
+      "contact_sequence_entropy": 1.5330414378877366
+    },
+    {
+      "duty_factors": [
+        0.545,
+        0.58,
+        0.0,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5,
+        0.0,
+        0.0
+      ],
+      "stride_frequency": 1.5,
+      "contact_sequence_entropy": 1.417554287195398
+    },
+    {
+      "duty_factors": [
+        0.55,
+        0.5825,
+        0.0,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.498949708598051,
+        0.0,
+        0.0
+      ],
+      "stride_frequency": 1.625,
+      "contact_sequence_entropy": 1.4308762940888307
+    },
+    {
+      "duty_factors": [
+        0.5575,
+        0.595,
+        0.0,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.49069997989096226,
+        0.0,
+        0.0
+      ],
+      "stride_frequency": 1.625,
+      "contact_sequence_entropy": 1.462364038716385
+    },
+    {
+      "duty_factors": [
+        0.5,
+        0.66,
+        0.49,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5034492561960637,
+        0.28788640446549635,
+        0.0
+      ],
+      "stride_frequency": 1.75,
+      "contact_sequence_entropy": 2.432258871501399
+    },
+    {
+      "duty_factors": [
+        0.5575,
+        0.5875,
+        0.1625,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5026195096820851,
+        0.2979265251542421,
+        0.0
+      ],
+      "stride_frequency": 1.75,
+      "contact_sequence_entropy": 1.9366273013441302
+    },
+    {
+      "duty_factors": [
+        0.59,
+        0.5875,
+        0.1575,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5134263174037862,
+        0.30007089899648876,
+        0.0
+      ],
+      "stride_frequency": 1.875,
+      "contact_sequence_entropy": 1.9644551934663168
+    },
+    {
+      "duty_factors": [
+        0.6025,
+        0.575,
+        0.1925,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5082965282932208,
+        0.32070781055231873,
+        0.0
+      ],
+      "stride_frequency": 2.0,
+      "contact_sequence_entropy": 2.0143311982030925
+    },
+    {
+      "duty_factors": [
+        0.6175,
+        0.55,
+        0.1625,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5198737574462959,
+        0.31787027967489234,
+        0.0
+      ],
+      "stride_frequency": 1.875,
+      "contact_sequence_entropy": 1.9867882259344796
+    },
+    {
+      "duty_factors": [
+        0.5825,
+        0.5675,
+        0.1775,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5050742022101017,
+        0.311226759781985,
+        0.0
+      ],
+      "stride_frequency": 1.875,
+      "contact_sequence_entropy": 1.9842171387411438
+    },
+    {
+      "duty_factors": [
+        0.595,
+        0.5375,
+        0.1625,
+        0.0
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5135702859688516,
+        0.3131460635534332,
+        0.0
+      ],
+      "stride_frequency": 1.875,
+      "contact_sequence_entropy": 1.9262342091704419
+    },
+    {
+      "duty_factors": [
+        0.6525,
+        0.5725,
+        0.1625,
+        0.7625
+      ],
+      "phase_offsets": [
+        0.0,
+        0.5201217140869495,
+        0.3254226953746456,
+        0.07426667124708666
+      ],
+      "stride_frequency": 1.875,
+      "contact_sequence_entropy": 2.276324689434067
+    }
+  ],
+  "steps": [
+    {
+      "from_alpha": 0.0,
+      "to_alpha": 0.125,
+      "distance": 0.00022570650526507348,
+      "rate": 0.0018056520421205879,
+      "components": {
+        "duty": 0.0,
+        "phase": 0.0005642662631626837,
+        "frequency": 0.0,
+        "entropy": 0.0
+      }
+    },
+    {
+      "from_alpha": 0.125,
+      "to_alpha": 0.275,
+      "distance": 0.007709621079318404,
+      "rate": 0.051397473862122685,
+      "components": {
+        "duty": 0.0062500000000000056,
+        "phase": 0.011068259631226136,
+        "frequency": 0.0,
+        "entropy": 0.009382114845519651
+      }
+    },
+    {
+      "from_alpha": 0.275,
+      "to_alpha": 0.425,
+      "distance": 0.010798990935462155,
+      "rate": 0.07199327290308105,
+      "components": {
+        "duty": 0.01874999999999999,
+        "phase": 0.006918178503984115,
+        "frequency": 0.0,
+        "entropy": 0.016044796892456747
+      }
+    },
+    {
+      "from_alpha": 0.425,
+      "to_alpha": 0.575,
+      "distance": 0.024680211262697746,
+      "rate": 0.16453474175131835,
+      "components": {
+        "duty": 0.021875000000000006,
+        "phase": 0.005621203933183779,
+        "frequency": 0.07692307692307693,
+        "entropy": 0.028871787673084626
+      }
+    },
+    {
+      "from_alpha": 0.575,
+      "to_alpha": 0.725,
+      "distance": 0.013016966481888274,
+      "rate": 0.08677977654592181,
+      "components": {
+        "duty": 0.0018750000000000155,
+        "phase": 0.0010410742123075226,
+        "frequency": 0.07692307692307693,
+        "entropy": 0.003330501723358137
+      }
+    },
+    {
+      "from_alpha": 0.725,
+      "to_alpha": 0.875,
+      "distance": 0.005941985035967573,
+      "rate": 0.03961323357311715,
+      "components": {
+        "duty": 0.004999999999999977,
+        "phase": 0.00815298653108573,
+        "frequency": 0.0,
+        "entropy": 0.007871936156888582
+      }
+    },
+    {
+      "from_alpha": 0.875,
+      "to_alpha": 1.0,
+      "distance": 0.09788121691110935,
+      "rate": 0.7830497352888748,
+      "components": {
+        "duty": 0.153125,
+        "phase": 0.012145937418464037,
+        "frequency": 0.07142857142857142,
+        "entropy": 0.24247370819625352
+      }
+    },
+    {
+      "from_alpha": 1.0,
+      "to_alpha": 1.125,
+      "distance": 0.05494430279462133,
+      "rate": 0.4395544223569706,
+      "components": {
+        "duty": 0.114375,
+        "phase": 0.005114047284309354,
+        "frequency": 0.0,
+        "entropy": 0.12390789253931722
+      }
+    },
+    {
+      "from_alpha": 1.125,
+      "to_alpha": 1.25,
+      "distance": 0.01762110457440732,
+      "rate": 0.14096883659525855,
+      "components": {
+        "duty": 0.009374999999999994,
+        "phase": 0.009412646549563308,
+        "frequency": 0.06666666666666667,
+        "entropy": 0.006956973030546654
+      }
+    },
+    {
+      "from_alpha": 1.25,
+      "to_alpha": 1.4,
+      "distance": 0.02092856780898632,
+      "rate": 0.13952378539324223,
+      "components": {
+        "duty": 0.015000000000000034,
+        "phase": 0.012958044078393063,
+        "frequency": 0.0625,
+        "entropy": 0.012469001184193917
+      }
+    },
+    {
+      "from_alpha": 1.4,
+      "to_alpha": 1.55,
+      "distance": 0.01982916176405771,
+      "rate": 0.13219441176038463,
+      "components": {
+        "duty": 0.01749999999999998,
+        "phase": 0.010428250759961835,
+        "frequency": 0.0625,
+        "entropy": 0.006885743067153227
+      }
+    },
+    {
+      "from_alpha": 1.55,
+      "to_alpha": 1.7,
+      "distance": 0.011034091902968555,
+      "rate": 0.07356061268645708,
+      "components": {
+        "duty": 0.016874999999999994,
+        "phase": 0.014687940333046165,
+        "frequency": 0.0,
+        "entropy": 0.0006427717983339409
+      }
+    },
+    {
+      "from_alpha": 1.7,
+      "to_alpha": 1.85,
+      "distance": 0.009502402076231507,
+      "rate": 0.06334934717487666,
+      "components": {
+        "duty": 0.014374999999999992,
+        "phase": 0.0075388555433254685,
+        "frequency": 0.0,
+        "entropy": 0.014495732392675487
+      }
+    },
+    {
+      "from_alpha": 1.85,
+      "to_alpha": 2.0,
+      "distance": 0.08156451215307459,
+      "rate": 0.5437634143538309,
+      "components": {
+        "duty": 0.21375,
+        "phase": 0.010777797857971599,
+        "frequency": 0.0,
+        "entropy": 0.08752262006590628
+      }
+    }
+  ],
+  "median_rate": 0.10948709415315322,
+  "bifurcation_alphas": [],
+  "min_bifurcation_jump": 0.15,
+  "bifurcation_rate_factor": 3.0
+}
