@@ -134,6 +134,13 @@ def default_multiped_config() -> config_dict.ConfigDict:
     two reasons. A gait signature is only meaningful if the robot is asked for the same
     thing at every waypoint, and a policy that must cover a symmetric command range spends
     most of its samples on turning and reversing, which this milestone does not measure.
+
+    Nothing here rewards a gait: there is no swing-height target, no air-time bonus and no
+    commanded stride frequency, only a speed to hold and a body to keep upright. That is
+    deliberate, because the gait is the measurement. The one weight that had to be tuned
+    is the alive bonus, which at 0.5 left diving forward - a full episode of tracking
+    reward compressed into fifty steps - worth more than walking; at 1.5 standing still
+    already beats it and walking beats standing still.
     """
     return config_dict.create(
         ctrl_dt=CTRL_TIMESTEP,
@@ -149,7 +156,7 @@ def default_multiped_config() -> config_dict.ConfigDict:
         velocity_reset_noise=0.1,
         reward_scales=config_dict.create(
             tracking_forward=2.0,
-            alive=0.5,
+            alive=1.5,
             upright=0.5,
             lateral_velocity=-0.5,
             vertical_velocity=-0.3,
@@ -347,10 +354,11 @@ class MultipedLocomotion(mjx_env.MjxEnv):
         done = self.terminated(data)
         info = dict(state.info)
         info["last_action"] = action
-        metrics = {
-            "forward_velocity": self.get_local_linvel(data)[0],
-            "upright": self.up_axis(data)[2],
-        }
+        # Updated rather than rebuilt: brax's evaluation wrapper adds a "reward" entry of
+        # its own, and a step that dropped it would change the scan carry's pytree.
+        metrics = dict(state.metrics)
+        metrics["forward_velocity"] = self.get_local_linvel(data)[0]
+        metrics["upright"] = self.up_axis(data)[2]
         return mjx_env.State(
             data=data,
             obs=self.observation(data, action),
