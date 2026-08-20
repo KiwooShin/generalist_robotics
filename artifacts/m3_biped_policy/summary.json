@@ -1,0 +1,54 @@
+{
+  "spec": {
+    "n_legs": 4,
+    "leg_length": 0.5,
+    "torso_mass": 8.0,
+    "leg_mass": 1.5,
+    "hip_spacing": 0.15
+  },
+  "growth": [
+    {
+      "leg_index": 2,
+      "growth": 0.0
+    },
+    {
+      "leg_index": 3,
+      "growth": 0.0
+    }
+  ],
+  "total_mass": 11.012,
+  "stats": {
+    "survived_fraction": 1.0,
+    "mean_forward_velocity": 0.47149354219436646,
+    "mean_forward_speed": 0.47157174348831177,
+    "distance_travelled": 4.714935302734375,
+    "net_displacement": 4.50916862487793,
+    "episode_return": 43.23785400390625,
+    "nominal_leg_length": 0.512668,
+    "num_episodes": 8,
+    "num_steps": 4000
+  },
+  "froude": 0.044217107665310174,
+  "is_viable": true,
+  "gait": {
+    "duty_factors": [
+      0.555,
+      0.5775,
+      0.0,
+      0.0
+    ],
+    "phase_offsets": [
+      0.0,
+      0.49939372933353754,
+      0.0,
+      0.0
+    ],
+    "stride_frequency": 1.625,
+    "contact_sequence_entropy": 1.431333790935831
+  },
+  "gait_trace_steps": 400,
+  "eval_seconds": 26.249928288991214,
+  "num_timesteps": 52428800,
+  "wall_clock_seconds": 550.3170250230032,
+  "steps_per_second": 95270.17630938908
+}
