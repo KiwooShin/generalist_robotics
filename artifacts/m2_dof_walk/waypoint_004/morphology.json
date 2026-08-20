@@ -1,0 +1,38 @@
+{
+  "alpha": 0.7000000000000001,
+  "params": {
+    "size_scale": 0.8812137634983328,
+    "mass_scale": 0.6842957064531007,
+    "torque_scale": 0.6030107948292872
+  },
+  "locks": [
+    {
+      "joint_names": [
+        "waist_yaw_joint",
+        "waist_roll_joint",
+        "waist_pitch_joint"
+      ],
+      "lock": 0.29999999999999993
+    },
+    {
+      "joint_names": [
+        "left_shoulder_pitch_joint",
+        "left_shoulder_roll_joint",
+        "left_shoulder_yaw_joint",
+        "left_elbow_joint",
+        "left_wrist_roll_joint",
+        "left_wrist_pitch_joint",
+        "left_wrist_yaw_joint",
+        "right_shoulder_pitch_joint",
+        "right_shoulder_roll_joint",
+        "right_shoulder_yaw_joint",
+        "right_elbow_joint",
+        "right_wrist_roll_joint",
+        "right_wrist_pitch_joint",
+        "right_wrist_yaw_joint"
+      ],
+      "lock": 0.29999999999999993
+    }
+  ],
+  "active_dof": 23
+}

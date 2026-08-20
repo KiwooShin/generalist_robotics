@@ -1,0 +1,291 @@
+{
+  "robot": "g1",
+  "sim_dt": 0.002,
+  "lock_rigidity": 0.5,
+  "lock_range": 1000.0,
+  "lock_damping_ratio": 1.0,
+  "lock_damping_ceiling": 1.0,
+  "active_dof_authority": 0.5,
+  "groups": {
+    "legs": [
+      "left_hip_pitch_joint",
+      "left_hip_roll_joint",
+      "left_hip_yaw_joint",
+      "left_knee_joint",
+      "left_ankle_pitch_joint",
+      "left_ankle_roll_joint",
+      "right_hip_pitch_joint",
+      "right_hip_roll_joint",
+      "right_hip_yaw_joint",
+      "right_knee_joint",
+      "right_ankle_pitch_joint",
+      "right_ankle_roll_joint"
+    ],
+    "waist": [
+      "waist_yaw_joint",
+      "waist_roll_joint",
+      "waist_pitch_joint"
+    ],
+    "arms": [
+      "left_shoulder_pitch_joint",
+      "left_shoulder_roll_joint",
+      "left_shoulder_yaw_joint",
+      "left_elbow_joint",
+      "left_wrist_roll_joint",
+      "left_wrist_pitch_joint",
+      "left_wrist_yaw_joint",
+      "right_shoulder_pitch_joint",
+      "right_shoulder_roll_joint",
+      "right_shoulder_yaw_joint",
+      "right_elbow_joint",
+      "right_wrist_roll_joint",
+      "right_wrist_pitch_joint",
+      "right_wrist_yaw_joint"
+    ]
+  },
+  "joints": [
+    {
+      "name": "waist_yaw_joint",
+      "stiffness_at_full_lock": 2824.4517687601656,
+      "damping_at_full_lock": 11.29780707504067,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 37.65935691680221,
+      "local_inertia": 0.05299184742775165
+    },
+    {
+      "name": "waist_roll_joint",
+      "stiffness_at_full_lock": 6391.830679382203,
+      "damping_at_full_lock": 25.567322717528825,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 85.22440905842937,
+      "local_inertia": 0.11992235799251326
+    },
+    {
+      "name": "waist_pitch_joint",
+      "stiffness_at_full_lock": 2111.858019492861,
+      "damping_at_full_lock": 8.447432077971447,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 28.158106926571477,
+      "local_inertia": 0.03962229385392003
+    },
+    {
+      "name": "left_shoulder_pitch_joint",
+      "stiffness_at_full_lock": 2223.2778557973324,
+      "damping_at_full_lock": 8.893111423189335,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 29.64370474396443,
+      "local_inertia": 0.04171273244139269
+    },
+    {
+      "name": "left_shoulder_roll_joint",
+      "stiffness_at_full_lock": 2382.368276758497,
+      "damping_at_full_lock": 9.529473107033994,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 31.764910356779957,
+      "local_inertia": 0.044697557818138806
+    },
+    {
+      "name": "left_shoulder_yaw_joint",
+      "stiffness_at_full_lock": 549.1565386917183,
+      "damping_at_full_lock": 2.1966261547668746,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 7.322087182556245,
+      "local_inertia": 0.010303174525468342
+    },
+    {
+      "name": "left_elbow_joint",
+      "stiffness_at_full_lock": 669.2922236350528,
+      "damping_at_full_lock": 2.6771688945402126,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 8.923896315134037,
+      "local_inertia": 0.012557138270772499
+    },
+    {
+      "name": "left_wrist_roll_joint",
+      "stiffness_at_full_lock": 211.33218177104428,
+      "damping_at_full_lock": 0.8453287270841775,
+      "position_gain": 2.0,
+      "stiffness_over_gain": 105.66609088552214,
+      "local_inertia": 0.003964975736831566
+    },
+    {
+      "name": "left_wrist_pitch_joint",
+      "stiffness_at_full_lock": 328.0629471476981,
+      "damping_at_full_lock": 1.312251788590793,
+      "position_gain": 2.0,
+      "stiffness_over_gain": 164.03147357384904,
+      "local_inertia": 0.006155057004064411
+    },
+    {
+      "name": "left_wrist_yaw_joint",
+      "stiffness_at_full_lock": 288.9563624696482,
+      "damping_at_full_lock": 1.1558254498785934,
+      "position_gain": 2.0,
+      "stiffness_over_gain": 144.4781812348241,
+      "local_inertia": 0.005421346415836045
+    },
+    {
+      "name": "right_shoulder_pitch_joint",
+      "stiffness_at_full_lock": 2220.0568136644647,
+      "damping_at_full_lock": 8.880227254657864,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 29.600757515526197,
+      "local_inertia": 0.041652299838099115
+    },
+    {
+      "name": "right_shoulder_roll_joint",
+      "stiffness_at_full_lock": 2382.296506786169,
+      "damping_at_full_lock": 9.529186027144682,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 31.76395342381559,
+      "local_inertia": 0.04469621128304638
+    },
+    {
+      "name": "right_shoulder_yaw_joint",
+      "stiffness_at_full_lock": 549.1576131658977,
+      "damping_at_full_lock": 2.196630452663592,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 7.322101508878636,
+      "local_inertia": 0.010303194684556347
+    },
+    {
+      "name": "right_elbow_joint",
+      "stiffness_at_full_lock": 669.0959119672432,
+      "damping_at_full_lock": 2.676383647868974,
+      "position_gain": 75.0,
+      "stiffness_over_gain": 8.921278826229909,
+      "local_inertia": 0.012553455107171013
+    },
+    {
+      "name": "right_wrist_roll_joint",
+      "stiffness_at_full_lock": 211.33218352327935,
+      "damping_at_full_lock": 0.8453287340931178,
+      "position_gain": 2.0,
+      "stiffness_over_gain": 105.66609176163968,
+      "local_inertia": 0.00396497576970668
+    },
+    {
+      "name": "right_wrist_pitch_joint",
+      "stiffness_at_full_lock": 328.0592242716012,
+      "damping_at_full_lock": 1.3122368970864053,
+      "position_gain": 2.0,
+      "stiffness_over_gain": 164.0296121358006,
+      "local_inertia": 0.006154987156144081
+    },
+    {
+      "name": "right_wrist_yaw_joint",
+      "stiffness_at_full_lock": 288.95638309049656,
+      "damping_at_full_lock": 1.155825532361987,
+      "position_gain": 2.0,
+      "stiffness_over_gain": 144.47819154524828,
+      "local_inertia": 0.005421346802720631
+    }
+  ],
+  "anneal": [
+    {
+      "alpha": 0.0,
+      "lock": 1.0,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.05,
+      "lock": 0.95,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.1,
+      "lock": 0.9,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.15,
+      "lock": 0.85,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.2,
+      "lock": 0.8,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.25,
+      "lock": 0.75,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.3,
+      "lock": 0.7,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.35,
+      "lock": 0.65,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.4,
+      "lock": 0.6,
+      "active_dof": 12
+    },
+    {
+      "alpha": 0.45,
+      "lock": 0.55,
+      "active_dof": 16
+    },
+    {
+      "alpha": 0.5,
+      "lock": 0.5,
+      "active_dof": 16
+    },
+    {
+      "alpha": 0.55,
+      "lock": 0.44999999999999996,
+      "active_dof": 16
+    },
+    {
+      "alpha": 0.6,
+      "lock": 0.4,
+      "active_dof": 22
+    },
+    {
+      "alpha": 0.65,
+      "lock": 0.35,
+      "active_dof": 22
+    },
+    {
+      "alpha": 0.7,
+      "lock": 0.30000000000000004,
+      "active_dof": 23
+    },
+    {
+      "alpha": 0.75,
+      "lock": 0.25,
+      "active_dof": 27
+    },
+    {
+      "alpha": 0.8,
+      "lock": 0.19999999999999996,
+      "active_dof": 29
+    },
+    {
+      "alpha": 0.85,
+      "lock": 0.15000000000000002,
+      "active_dof": 29
+    },
+    {
+      "alpha": 0.9,
+      "lock": 0.09999999999999998,
+      "active_dof": 29
+    },
+    {
+      "alpha": 0.95,
+      "lock": 0.050000000000000044,
+      "active_dof": 29
+    },
+    {
+      "alpha": 1.0,
+      "lock": 0.0,
+      "active_dof": 29
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "start_policy": {
+    "params": {
+      "size_scale": 0.6560509554140127,
+      "mass_scale": 0.2823662049570879,
+      "torque_scale": 0.18524661853872645
+    },
+    "active_dof": 12,
+    "train_steps": 202342400,
+    "train_seconds": 2927.5691737390007,
+    "steps_per_second": 69116.18069183812,
+    "final_reward": 24.964529037475586,
+    "stats": {
+      "survived_fraction": 0.9956250190734863,
+      "mean_forward_velocity": -0.09097421914339066,
+      "mean_forward_speed": 0.3516758382320404,
+      "distance_travelled": -1.4672797918319702,
+      "net_displacement": 1.8716557025909424,
+      "episode_return": 29.953020095825195,
+      "nominal_leg_length": 0.515,
+      "num_episodes": 8,
+      "num_steps": 8000
+    },
+    "is_viable": true
+  },
+  "walk": {
+    "reached_target": true,
+    "num_waypoints": 6,
+    "total_finetune_steps": 12451840,
+    "wall_clock_seconds": 893.0568928349967,
+    "fraction_of_start_policy_cost": 0.06153846153846154,
+    "final_active_dof": 29,
+    "final_stats": {
+      "survived_fraction": 0.940500020980835,
+      "mean_forward_velocity": -0.07229776680469513,
+      "mean_forward_speed": 0.3098483681678772,
+      "distance_travelled": -1.3599209785461426,
+      "net_displacement": 2.4671854972839355,
+      "episode_return": 14.452336311340332,
+      "nominal_leg_length": 0.785,
+      "num_episodes": 8,
+      "num_steps": 8000
+    },
+    "final_is_viable": true
+  },
+  "one_jump_control": {
+    "budget_steps": 12451840,
+    "spent_steps": 12451840,
+    "active_dof": 29,
+    "stats": {
+      "survived_fraction": 0.6212500333786011,
+      "mean_forward_velocity": -0.04018593952059746,
+      "mean_forward_speed": 0.3632284700870514,
+      "distance_travelled": -0.49931031465530396,
+      "net_displacement": 2.923356533050537,
+      "episode_return": 8.124122619628906,
+      "nominal_leg_length": 0.785,
+      "num_episodes": 8,
+      "num_steps": 8000
+    },
+    "is_viable": false,
+    "rounds": [
+      {
+        "round": 0,
+        "cumulative_steps": 6225920,
+        "is_viable": false,
+        "reward": -3.289090156555176,
+        "survived_fraction": 0.3863750100135803,
+        "mean_forward_speed": 0.26022541522979736
+      },
+      {
+        "round": 1,
+        "cumulative_steps": 12451840,
+        "is_viable": false,
+        "reward": -2.6547417640686035,
+        "survived_fraction": 0.6188750267028809,
+        "mean_forward_speed": 0.32312747836112976
+      }
+    ]
+  }
+}

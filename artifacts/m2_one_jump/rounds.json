@@ -1,0 +1,39 @@
+{
+  "budget": 12451840,
+  "rounds": [
+    {
+      "round": 0,
+      "cumulative_steps": 6225920,
+      "stats": {
+        "survived_fraction": 0.3863750100135803,
+        "mean_forward_velocity": -0.11140263825654984,
+        "mean_forward_speed": 0.26022541522979736,
+        "distance_travelled": -0.8608639240264893,
+        "net_displacement": 1.611875295639038,
+        "episode_return": 4.082912445068359,
+        "nominal_leg_length": 0.785,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "is_viable": false,
+      "reward": -3.289090156555176
+    },
+    {
+      "round": 1,
+      "cumulative_steps": 12451840,
+      "stats": {
+        "survived_fraction": 0.6188750267028809,
+        "mean_forward_velocity": 0.02195550687611103,
+        "mean_forward_speed": 0.32312747836112976,
+        "distance_travelled": 0.27175426483154297,
+        "net_displacement": 2.5256001949310303,
+        "episode_return": 7.578181266784668,
+        "nominal_leg_length": 0.785,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "is_viable": false,
+      "reward": -2.6547417640686035
+    }
+  ]
+}

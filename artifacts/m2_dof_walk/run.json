@@ -1,0 +1,371 @@
+{
+  "reached_target": true,
+  "total_finetune_steps": 12451840,
+  "wall_clock_seconds": 893.0568928349967,
+  "num_waypoints": 6,
+  "num_accepted_waypoints": 6,
+  "waypoints": [
+    {
+      "record": "waypoint",
+      "index": 0,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 0.8808750510215759,
+        "mean_forward_velocity": -0.1374947726726532,
+        "mean_forward_speed": 0.3616667687892914,
+        "distance_travelled": -1.9620012044906616,
+        "net_displacement": 1.6736257076263428,
+        "episode_return": 26.026960372924805,
+        "nominal_leg_length": 0.515,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null,
+      "alpha": 0.0,
+      "params": {
+        "size_scale": 0.6560509554140127,
+        "mass_scale": 0.2823662049570879,
+        "torque_scale": 0.18524661853872645
+      },
+      "locks": [
+        {
+          "joint_names": [
+            "waist_yaw_joint",
+            "waist_roll_joint",
+            "waist_pitch_joint"
+          ],
+          "lock": 1.0
+        },
+        {
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "left_elbow_joint",
+            "left_wrist_roll_joint",
+            "left_wrist_pitch_joint",
+            "left_wrist_yaw_joint",
+            "right_shoulder_pitch_joint",
+            "right_shoulder_roll_joint",
+            "right_shoulder_yaw_joint",
+            "right_elbow_joint",
+            "right_wrist_roll_joint",
+            "right_wrist_pitch_joint",
+            "right_wrist_yaw_joint"
+          ],
+          "lock": 1.0
+        }
+      ],
+      "active_dof": 12
+    },
+    {
+      "record": "waypoint",
+      "index": 1,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 0.92125004529953,
+        "mean_forward_velocity": -0.10014180839061737,
+        "mean_forward_speed": 0.3394010663032532,
+        "distance_travelled": -1.5263172388076782,
+        "net_displacement": 1.6291565895080566,
+        "episode_return": 28.055347442626953,
+        "nominal_leg_length": 0.5371721295656839,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null,
+      "alpha": 0.1,
+      "params": {
+        "size_scale": 0.6842957064531006,
+        "mass_scale": 0.3204287275724355,
+        "torque_scale": 0.2192680025020479
+      },
+      "locks": [
+        {
+          "joint_names": [
+            "waist_yaw_joint",
+            "waist_roll_joint",
+            "waist_pitch_joint"
+          ],
+          "lock": 0.9
+        },
+        {
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "left_elbow_joint",
+            "left_wrist_roll_joint",
+            "left_wrist_pitch_joint",
+            "left_wrist_yaw_joint",
+            "right_shoulder_pitch_joint",
+            "right_shoulder_roll_joint",
+            "right_shoulder_yaw_joint",
+            "right_elbow_joint",
+            "right_wrist_roll_joint",
+            "right_wrist_pitch_joint",
+            "right_wrist_yaw_joint"
+          ],
+          "lock": 0.9
+        }
+      ],
+      "active_dof": 12
+    },
+    {
+      "record": "waypoint",
+      "index": 2,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 0,
+      "stats_before": {
+        "survived_fraction": 0.9183750152587891,
+        "mean_forward_velocity": -0.12083651125431061,
+        "mean_forward_speed": 0.38263148069381714,
+        "distance_travelled": -1.8949589729309082,
+        "net_displacement": 2.057709217071533,
+        "episode_return": 27.424312591552734,
+        "nominal_leg_length": 0.5722329163668719,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null,
+      "alpha": 0.25,
+      "params": {
+        "size_scale": 0.7289591291297731,
+        "mass_scale": 0.38735533128472505,
+        "torque_scale": 0.2823662049570879
+      },
+      "locks": [
+        {
+          "joint_names": [
+            "waist_yaw_joint",
+            "waist_roll_joint",
+            "waist_pitch_joint"
+          ],
+          "lock": 0.75
+        },
+        {
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "left_elbow_joint",
+            "left_wrist_roll_joint",
+            "left_wrist_pitch_joint",
+            "left_wrist_yaw_joint",
+            "right_shoulder_pitch_joint",
+            "right_shoulder_roll_joint",
+            "right_shoulder_yaw_joint",
+            "right_elbow_joint",
+            "right_wrist_roll_joint",
+            "right_wrist_pitch_joint",
+            "right_wrist_yaw_joint"
+          ],
+          "lock": 0.75
+        }
+      ],
+      "active_dof": 12
+    },
+    {
+      "record": "waypoint",
+      "index": 3,
+      "viable_before": false,
+      "accepted": true,
+      "finetune_steps": 6225920,
+      "cumulative_steps": 6225920,
+      "stats_before": {
+        "survived_fraction": 0.6353750228881836,
+        "mean_forward_velocity": -0.13151103258132935,
+        "mean_forward_speed": 0.48059800267219543,
+        "distance_travelled": -1.4961268901824951,
+        "net_displacement": 1.9647514820098877,
+        "episode_return": 16.2877197265625,
+        "nominal_leg_length": 0.6291611277216539,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": {
+        "survived_fraction": 0.9937500357627869,
+        "mean_forward_velocity": -0.09993009269237518,
+        "mean_forward_speed": 0.3597763180732727,
+        "distance_travelled": -1.7780728340148926,
+        "net_displacement": 2.6303935050964355,
+        "episode_return": 29.588829040527344,
+        "nominal_leg_length": 0.6291611277216539,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "checkpoint": null,
+      "alpha": 0.47500000000000003,
+      "params": {
+        "size_scale": 0.8014791435944635,
+        "mass_scale": 0.5148452098153927,
+        "torque_scale": 0.41263769784655285
+      },
+      "locks": [
+        {
+          "joint_names": [
+            "waist_yaw_joint",
+            "waist_roll_joint",
+            "waist_pitch_joint"
+          ],
+          "lock": 0.5249999999999999
+        },
+        {
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "left_elbow_joint",
+            "left_wrist_roll_joint",
+            "left_wrist_pitch_joint",
+            "left_wrist_yaw_joint",
+            "right_shoulder_pitch_joint",
+            "right_shoulder_roll_joint",
+            "right_shoulder_yaw_joint",
+            "right_elbow_joint",
+            "right_wrist_roll_joint",
+            "right_wrist_pitch_joint",
+            "right_wrist_yaw_joint"
+          ],
+          "lock": 0.5249999999999999
+        }
+      ],
+      "active_dof": 16
+    },
+    {
+      "record": "waypoint",
+      "index": 4,
+      "viable_before": true,
+      "accepted": true,
+      "finetune_steps": 0,
+      "cumulative_steps": 6225920,
+      "stats_before": {
+        "survived_fraction": 0.8717500567436218,
+        "mean_forward_velocity": -0.05462194234132767,
+        "mean_forward_speed": 0.3429317772388458,
+        "distance_travelled": -0.8939839601516724,
+        "net_displacement": 3.08815336227417,
+        "episode_return": 22.26122283935547,
+        "nominal_leg_length": 0.6917528043461912,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": null,
+      "checkpoint": null,
+      "alpha": 0.7000000000000001,
+      "params": {
+        "size_scale": 0.8812137634983328,
+        "mass_scale": 0.6842957064531007,
+        "torque_scale": 0.6030107948292872
+      },
+      "locks": [
+        {
+          "joint_names": [
+            "waist_yaw_joint",
+            "waist_roll_joint",
+            "waist_pitch_joint"
+          ],
+          "lock": 0.29999999999999993
+        },
+        {
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "left_elbow_joint",
+            "left_wrist_roll_joint",
+            "left_wrist_pitch_joint",
+            "left_wrist_yaw_joint",
+            "right_shoulder_pitch_joint",
+            "right_shoulder_roll_joint",
+            "right_shoulder_yaw_joint",
+            "right_elbow_joint",
+            "right_wrist_roll_joint",
+            "right_wrist_pitch_joint",
+            "right_wrist_yaw_joint"
+          ],
+          "lock": 0.29999999999999993
+        }
+      ],
+      "active_dof": 23
+    },
+    {
+      "record": "waypoint",
+      "index": 5,
+      "viable_before": false,
+      "accepted": true,
+      "finetune_steps": 6225920,
+      "cumulative_steps": 12451840,
+      "stats_before": {
+        "survived_fraction": 0.6287500262260437,
+        "mean_forward_velocity": -0.1689952164888382,
+        "mean_forward_speed": 0.38251346349716187,
+        "distance_travelled": -2.125114917755127,
+        "net_displacement": 2.9229917526245117,
+        "episode_return": 7.1655073165893555,
+        "nominal_leg_length": 0.785,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "stats_after": {
+        "survived_fraction": 0.940500020980835,
+        "mean_forward_velocity": -0.07229776680469513,
+        "mean_forward_speed": 0.3098483681678772,
+        "distance_travelled": -1.3599209785461426,
+        "net_displacement": 2.4671854972839355,
+        "episode_return": 14.452336311340332,
+        "nominal_leg_length": 0.785,
+        "num_episodes": 8,
+        "num_steps": 8000
+      },
+      "checkpoint": null,
+      "alpha": 1.0,
+      "params": {
+        "size_scale": 1.0,
+        "mass_scale": 1.0,
+        "torque_scale": 1.0
+      },
+      "locks": [
+        {
+          "joint_names": [
+            "waist_yaw_joint",
+            "waist_roll_joint",
+            "waist_pitch_joint"
+          ],
+          "lock": 0.0
+        },
+        {
+          "joint_names": [
+            "left_shoulder_pitch_joint",
+            "left_shoulder_roll_joint",
+            "left_shoulder_yaw_joint",
+            "left_elbow_joint",
+            "left_wrist_roll_joint",
+            "left_wrist_pitch_joint",
+            "left_wrist_yaw_joint",
+            "right_shoulder_pitch_joint",
+            "right_shoulder_roll_joint",
+            "right_shoulder_yaw_joint",
+            "right_elbow_joint",
+            "right_wrist_roll_joint",
+            "right_wrist_pitch_joint",
+            "right_wrist_yaw_joint"
+          ],
+          "lock": 0.0
+        }
+      ],
+      "active_dof": 29
+    }
+  ]
+}

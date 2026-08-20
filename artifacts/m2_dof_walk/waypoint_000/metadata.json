@@ -1,0 +1,16 @@
+{
+  "metrics": {
+    "alpha": 0.0,
+    "active_dof": 12.0,
+    "cumulative_steps": 0.0,
+    "survived_fraction": 0.8808750510215759,
+    "mean_forward_speed": 0.3616667687892914,
+    "episode_return": 26.026960372924805,
+    "size_scale": 0.6560509554140127,
+    "mass_scale": 0.2823662049570879,
+    "torque_scale": 0.18524661853872645
+  },
+  "num_timesteps": 0,
+  "wall_clock_seconds": 40.48814909700013,
+  "steps_per_second": 0.0
+}

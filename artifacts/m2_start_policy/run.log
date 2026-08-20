@@ -1,0 +1,17 @@
+{
+  "robot": "g1",
+  "params": {
+  },
+  "locks": [
+  ],
+  "active_dof": 12,
+  "stats": {
+  },
+  "froude": 0.02447985416034921,
+  "is_viable": true,
+  "eval_seconds": 40.87337237900647,
+  "num_timesteps": 202342400,
+  "wall_clock_seconds": 2927.5691737390007,
+  "steps_per_second": 69116.18069183812
+}
+final reward 24.964529037475586

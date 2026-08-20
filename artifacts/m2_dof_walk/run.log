@@ -1,0 +1,7 @@
+alpha=0.0000 dof=12 viable_before=True accepted=True steps=0 cumulative=0
+alpha=0.1000 dof=12 viable_before=True accepted=True steps=0 cumulative=0
+alpha=0.2500 dof=12 viable_before=True accepted=True steps=0 cumulative=0
+alpha=0.4750 dof=16 viable_before=False accepted=True steps=6225920 cumulative=6225920
+alpha=0.7000 dof=23 viable_before=True accepted=True steps=0 cumulative=6225920
+alpha=1.0000 dof=29 viable_before=False accepted=True steps=6225920 cumulative=12451840
+reached_target=True total_steps=12451840 wall_clock=893.1s
