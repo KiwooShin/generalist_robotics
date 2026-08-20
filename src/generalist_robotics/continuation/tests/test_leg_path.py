@@ -20,6 +20,9 @@ RUN_INTEGRATION = os.environ.get("GENROBO_SKIP_SLOW_TESTS", "0") != "1"
 SPEC = MultipedSpec(n_legs=4)
 BIPED = (LegGrowth(2, 0.0), LegGrowth(3, 0.0))
 TRIPOD = (LegGrowth(2, 1.0), LegGrowth(3, 0.0))
+# What a walk actually records: every leg named, which is what keeps the lock's spring
+# normalisation from being renormalised each time a leg finishes growing.
+WALKED_BIPED = (LegGrowth(0, 1.0), LegGrowth(1, 1.0), LegGrowth(2, 0.0), LegGrowth(3, 0.0))
 
 
 def stats(survived: float, speed: float) -> RolloutStats:
@@ -39,7 +42,7 @@ def stats(survived: float, speed: float) -> RolloutStats:
 
 def waypoint(
     alpha: float,
-    growth: tuple[LegGrowth, ...] = BIPED,
+    growth: tuple[LegGrowth, ...] = WALKED_BIPED,
     viable_before: bool = True,
     signature: GaitSignature | None = None,
 ) -> leg_path.LegWaypoint:
