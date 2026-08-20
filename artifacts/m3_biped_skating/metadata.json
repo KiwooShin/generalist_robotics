@@ -1,0 +1,33 @@
+{
+  "metrics": {
+    "eval/walltime": 54.32609558105469,
+    "training/sps": 146020.328125,
+    "training/walltime": 193.1712188720703,
+    "training/entropy_loss": 0.06272990256547928,
+    "training/kl_mean": 0.019554011523723602,
+    "training/learning_rate": 0.00029999998514540493,
+    "training/policy_dist_max_loc": 1.6463596820831299,
+    "training/policy_dist_max_std": 0.4378775358200073,
+    "training/policy_dist_mean_loc": -0.11392192542552948,
+    "training/policy_dist_mean_std": 0.13157010078430176,
+    "training/policy_dist_min_loc": -1.9402881860733032,
+    "training/policy_dist_min_std": 0.028330661356449127,
+    "training/policy_loss": 0.005624785088002682,
+    "training/total_loss": 0.06835644692182541,
+    "training/v_loss": 1.7578988718014443e-06,
+    "eval/episode_forward_velocity": 247.2052001953125,
+    "eval/episode_reward": 39.625526428222656,
+    "eval/episode_upright": 499.5630187988281,
+    "eval/episode_forward_velocity_std": 0.9156819581985474,
+    "eval/episode_reward_std": 0.0440608374774456,
+    "eval/episode_upright_std": 0.03237538039684296,
+    "eval/avg_episode_length": 500.0,
+    "eval/std_episode_length": 0.0,
+    "eval/epoch_eval_time": 2.8011155128479004,
+    "eval/sps": 91392.1640625,
+    "initial_eval/episode_reward": 39.495418548583984
+  },
+  "num_timesteps": 52428800,
+  "wall_clock_seconds": 528.7096610289882,
+  "steps_per_second": 101633.08062691758
+}

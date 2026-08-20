@@ -196,6 +196,24 @@ def foot_site_names(spec: MultipedSpec) -> tuple[str, ...]:
     return tuple(foot_site_name(spec, leg) for leg in range(spec.n_legs))
 
 
+def foot_velocity_sensor_name(spec: MultipedSpec, leg_index: int) -> str:
+    """Name of the sensor reporting one foot's world-frame linear velocity."""
+    return f"{foot_site_name(spec, leg_index)}_linvel"
+
+
+def sensor_xml(spec: MultipedSpec) -> str:
+    """Return the MJCF of the foot velocity sensors.
+
+    A foot's own speed is what tells a dragged foot from a planted one, and it cannot be
+    recovered from the state a policy sees, so it is measured directly.
+    """
+    return "\n".join(
+        f'    <framelinvel name="{foot_velocity_sensor_name(spec, leg)}" '
+        f'objtype="site" objname="{foot_site_name(spec, leg)}"/>'
+        for leg in range(spec.n_legs)
+    )
+
+
 def segment_length(spec: MultipedSpec) -> float:
     """Length of one leg segment, in metres."""
     return spec.leg_length * SEGMENT_FRACTION
@@ -312,6 +330,9 @@ def build_multiped_xml(spec: MultipedSpec) -> str:
   <actuator>
 {actuator_xml(spec)}
   </actuator>
+  <sensor>
+{sensor_xml(spec)}
+  </sensor>
   <keyframe>
     <key name="home" qpos="{pose}" ctrl="{control}"/>
   </keyframe>

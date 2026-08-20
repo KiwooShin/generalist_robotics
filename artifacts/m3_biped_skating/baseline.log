@@ -1,0 +1,56 @@
+round 0: 26214400 steps, 271s, reward 39.49928665161133
+round 1: 26214400 steps, 258s, reward 39.625526428222656
+{
+  "spec": {
+    "n_legs": 4,
+    "leg_length": 0.5,
+    "torso_mass": 8.0,
+    "leg_mass": 1.5,
+    "hip_spacing": 0.15
+  },
+  "growth": [
+    {
+      "leg_index": 2,
+      "growth": 0.0
+    },
+    {
+      "leg_index": 3,
+      "growth": 0.0
+    }
+  ],
+  "total_mass": 11.012,
+  "stats": {
+    "survived_fraction": 1.0,
+    "mean_forward_velocity": 0.4927384853363037,
+    "mean_forward_speed": 0.49278154969215393,
+    "distance_travelled": 4.927384853363037,
+    "net_displacement": 4.92326545715332,
+    "episode_return": 39.694786071777344,
+    "nominal_leg_length": 0.512668,
+    "num_episodes": 8,
+    "num_steps": 4000
+  },
+  "froude": 0.04828404659167976,
+  "is_viable": true,
+  "gait": {
+    "duty_factors": [
+      1.0,
+      1.0,
+      0.0,
+      0.0
+    ],
+    "phase_offsets": [
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "stride_frequency": 0.0,
+    "contact_sequence_entropy": -0.0
+  },
+  "gait_trace_steps": 400,
+  "eval_seconds": 25.982337185996585,
+  "num_timesteps": 52428800,
+  "wall_clock_seconds": 528.7096610289882,
+  "steps_per_second": 99163.68824802962
+}

@@ -61,6 +61,7 @@ from generalist_robotics.morphology.multiped import (
     apply_leg_growth,
     build_multiped_model,
     foot_site_name,
+    foot_velocity_sensor_name,
     growth_by_leg,
     home_ctrl,
     home_qpos,
@@ -136,11 +137,20 @@ def default_multiped_config() -> config_dict.ConfigDict:
     most of its samples on turning and reversing, which this milestone does not measure.
 
     Nothing here rewards a gait: there is no swing-height target, no air-time bonus and no
-    commanded stride frequency, only a speed to hold and a body to keep upright. That is
-    deliberate, because the gait is the measurement. The one weight that had to be tuned
-    is the alive bonus, which at 0.5 left diving forward - a full episode of tracking
-    reward compressed into fifty steps - worth more than walking; at 1.5 standing still
-    already beats it and walking beats standing still.
+    commanded stride frequency, so nothing states which legs should swing together, how
+    long a foot should stay down or how often it should cycle. That is deliberate, because
+    the gait is the measurement.
+
+    Two weights had to be set against observed failures rather than picked. The alive bonus
+    at 0.5 left diving forward - a whole episode of tracking reward compressed into fifty
+    steps - worth more than walking, so it is 1.5, at which standing still already beats
+    diving and walking beats standing still. And with no slip penalty at all the biped
+    learned to skate: fifty million steps of training produced a policy that held 0.49 m/s
+    with both feet permanently on the floor, oscillating over a nine-millimetre range and
+    never once leaving it, which has a duty factor of one and no gait to speak of. The
+    feet_slip term charges a foot for moving while it carries load, which is a statement
+    about friction and not about gait: it says a foot must be picked up to be moved
+    forward, and says nothing about when.
     """
     return config_dict.create(
         ctrl_dt=CTRL_TIMESTEP,
@@ -161,6 +171,7 @@ def default_multiped_config() -> config_dict.ConfigDict:
             lateral_velocity=-0.5,
             vertical_velocity=-0.3,
             yaw_rate=-0.3,
+            feet_slip=-2.0,
             action_rate=-0.01,
             joint_deviation=-0.05,
         ),
@@ -210,6 +221,13 @@ class MultipedLocomotion(mjx_env.MjxEnv):
                 for leg in range(spec.n_legs)
             ]
         )
+        addresses = np.asarray(
+            [
+                int(self._model.sensor(foot_velocity_sensor_name(spec, leg)).adr[0])
+                for leg in range(spec.n_legs)
+            ]
+        )
+        self._foot_velocity_indices = addresses[:, None] + np.arange(3)[None, :]
 
     @property
     def xml_path(self) -> str:
@@ -256,6 +274,10 @@ class MultipedLocomotion(mjx_env.MjxEnv):
         the solver happens to have numbered its contacts.
         """
         return data.site_xpos[self._foot_sites, 2] < self._stance_heights
+
+    def foot_velocities(self, data: mjx.Data) -> jax.Array:
+        """World-frame linear velocity of every foot, one row per leg."""
+        return data.sensordata[self._foot_velocity_indices]
 
     def observation(self, data: mjx.Data, last_action: jax.Array) -> dict[str, jax.Array]:
         """Proprioception plus the command, as the single-key dict brax's networks read."""
@@ -334,6 +356,7 @@ class MultipedLocomotion(mjx_env.MjxEnv):
         """The reward terms, before their weights: track the command and stay a walker."""
         velocity = self.get_local_linvel(data)
         error = velocity[0] - self._config.command_velocity
+        slip = jnp.sum(self.foot_velocities(data)[:, :2] ** 2, axis=1)
         return {
             "tracking_forward": jnp.exp(-(error**2) / self._config.tracking_sigma),
             "alive": jnp.ones(()),
@@ -341,6 +364,7 @@ class MultipedLocomotion(mjx_env.MjxEnv):
             "lateral_velocity": velocity[1] ** 2,
             "vertical_velocity": velocity[2] ** 2,
             "yaw_rate": data.qvel[5] ** 2,
+            "feet_slip": jnp.sum(jnp.where(self.foot_contacts(data), slip, 0.0)),
             "action_rate": jnp.sum((action - last_action) ** 2),
             "joint_deviation": jnp.sum((data.qpos[7:] - self._home_qpos[7:]) ** 2),
         }

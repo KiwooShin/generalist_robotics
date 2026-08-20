@@ -50,8 +50,13 @@ BASELINE_TIMESTEPS = 25_000_000
 BASELINE_ROUNDS = 2
 FINETUNE_TIMESTEPS = 4_000_000
 MAX_FINETUNE_ROUNDS = 3
-STEP_ALPHA = 0.2
+
+# The stride is capped below continuation.path's own ceiling because the gait is sampled
+# once per waypoint: a walk that accelerates to half the path per step arrives in three
+# waypoints and cannot say where between them anything happened.
+STEP_ALPHA = 0.125
 MIN_STEP_ALPHA = 0.05
+MAX_STEP_ALPHA = 0.15
 
 
 def report(directory: pathlib.Path, growth: tuple[LegGrowth, ...], params: object, extra: dict):
@@ -110,7 +115,11 @@ def run_baseline() -> None:
         BASELINE_DIR,
         BIPED,
         params,
-        {"num_timesteps": spent, "wall_clock_seconds": seconds, "steps_per_second": spent / seconds},
+        {
+            "num_timesteps": spent,
+            "wall_clock_seconds": seconds,
+            "steps_per_second": spent / seconds,
+        },
     )
     print(json.dumps(document, indent=2), flush=True)
 
@@ -132,6 +141,7 @@ def run_walk(directory: pathlib.Path, start_dir: pathlib.Path, start, end) -> No
         seed=SEED,
         log_path=directory / "run.jsonl",
         checkpoint_dir=directory,
+        max_step_alpha=MAX_STEP_ALPHA,
     )
     leg_path.save_leg_run_log(result, SPEC, directory / "run.json")
     ppo.save_checkpoint(
@@ -145,9 +155,10 @@ def run_walk(directory: pathlib.Path, start_dir: pathlib.Path, start, end) -> No
         directory / "final",
     )
     signatures, alphas = leg_path.accepted_gait_path(result)
+    accepted = [w for w in result.waypoints if leg_path.leg_waypoint_accepted(w)]
     document = report(
         directory,
-        end if result.reached_target else result.waypoints[-1].growth,
+        end if result.reached_target else accepted[-1].growth,
         result.final_policy_params,
         {
             "reached_target": result.reached_target,
@@ -240,6 +251,11 @@ def run_analyse() -> None:
                 continue
             signatures.append(signature)
             alphas.append(alpha)
+    if len(signatures) < 2:
+        raise SystemExit(
+            f"only {len(signatures)} waypoints carry a gait, so there is nothing to compare; "
+            "the walks did not produce a walking policy at two or more bodies"
+        )
     jumps, rates = gait.gait_change_rates(signatures, alphas)
     steps = [
         {
