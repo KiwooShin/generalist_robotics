@@ -17,6 +17,17 @@
     }
   ],
   "total_mass": 14.0,
+  "stats": {
+    "survived_fraction": 1.0,
+    "mean_forward_velocity": 0.44345352053642273,
+    "mean_forward_speed": 0.4434596002101898,
+    "distance_travelled": 4.434535026550293,
+    "net_displacement": 2.836118698120117,
+    "episode_return": 37.55290985107422,
+    "nominal_leg_length": 0.512668,
+    "num_episodes": 8,
+    "num_steps": 4000
+  },
   "froude": 0.03910235413555658,
   "is_viable": true,
   "gait": {
