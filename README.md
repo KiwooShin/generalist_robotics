@@ -19,12 +19,18 @@ walked to a robot **twice its size** — mass ×8, torque ×16 — along the dyn
 
 | | fine-tune cost | outcome |
 |---|---|---|
-| **On the similarity manifold** (torque ×16) | **6.55 M steps — 4.1% of training from scratch** | reached 2× size; 4 of 5 waypoints needed no fine-tuning at all |
+| **On the similarity manifold** (torque ×16) | **6.55 M steps — 4.1% of the 160.6 M that trained the original policy** | reached 2× size; 4 of 5 waypoints needed no fine-tuning at all |
 | **Off the manifold** (torque ×8, underpowered) | 118 M steps — 73% of from-scratch | **failed**, stalled at α=0.55 after three backtracks |
 
 Walking speed rose 0.448 → 0.594 m/s where dynamic similarity predicts ×√2 = 0.634, and the
 **Froude number stayed ≈0.035–0.040 across the whole sweep** — the invariant that lets a single
 viability threshold hold at every body size.
+
+**Controls not yet run.** The 4.1% figure is measured against training the *base* robot, which is
+not the denominator that settles the question. Training the 2× robot from scratch, fine-tuning
+A→B in one jump, and domain randomization spanning the interval are all specified in `plan.md`
+and none has been run. Until the one-jump control exists, this shows continuation *works cheaply*,
+not that it beats the alternatives.
 
 The controlled pair is the point: the same geometric path is nearly free when the actuators scale
 with the body, and a wall when they do not. The off-manifold failure is a *survival* collapse

@@ -55,7 +55,7 @@ Berkeley Humanoid is the starting robot: fewest actuators, cheapest to train.
 
 ## Milestones
 
-### M1 — Self-morphing continuation (fixed topology) ← **current**
+### M1 — Self-morphing continuation (fixed topology) — 4/6 delivered
 
 Parametric morphing of one robot: independent **size**, **mass** and **torque** scales. Train a
 baseline policy, then map where it survives and walk it through morphology space.
@@ -76,9 +76,21 @@ Baselines M1 must report: from-scratch RL at the target, one-jump fine-tune, and
 randomization spanning the whole interval** (the honest baseline, most likely to win). Report total
 env-steps and wall-clock **along the entire path**, not just the final step.
 
-### M2 — Cross-robot continuation
-Berkeley → T1 → G1 → H1 → Apollo. Needs DoF changes, handled by annealing joint stiffness (a joint
-locked at high stiffness is effectively absent; annealing it down grows a DoF continuously).
+> **M1 status (2026-08-19).** Deliverables 1–4 and the timelapse demo are done. **Deferred:**
+> deliverable 5 (the viability map) and the three baselines. The headline 4.1% is therefore
+> measured against the base robot's training cost, not against the untested alternatives.
+
+### M2 — Cross-robot continuation ← **current**
+Berkeley → G1 → Apollo in spirit, but executed **inside a superset model**, because the DoF
+counts differ (Berkeley 12, H1 19, T1 23, G1 29, Apollo 32) and a policy's action width cannot
+change mid-path. Measured structure: every robot has legs (5–6 DoF each); the differences are
+arms, waist and neck. Berkeley has no arm *links* at all, so arms cannot be annealed onto it.
+
+Design: run the whole path in **G1's model**. Start with its waist and arms locked rigid at
+Berkeley-like scale and mass — kinematically a legs-only biped — and anneal joint stiffness down
+so those 17 DoF appear continuously, while size/mass/torque morph to G1 nominal. The action space
+stays 29-dim throughout; a joint locked at high stiffness is effectively absent, and annealing it
+down grows a DoF.
 
 ### M3 — Topology: growing legs
 2 → 3 → 4 legs. Add a limb with near-zero mass and locked joints, anneal mass up and stiffness
