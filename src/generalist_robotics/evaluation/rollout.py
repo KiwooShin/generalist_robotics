@@ -1,6 +1,7 @@
 """Rollout harness answering whether a policy still locomotes on a given morphology."""
 
 import dataclasses
+import inspect
 import functools
 from collections.abc import Callable
 from typing import Any, NamedTuple
@@ -139,12 +140,25 @@ def free_joint_forward_velocity(data: Any) -> jax.Array:
     return rotate_by_quat(inverse, data.qvel[:3])[0]
 
 
+# G1 alone declares get_local_linvel(data, frame) with no default; its own
+# observation code passes "pelvis".
+VELOCITY_FRAME_BY_ROBOT = {"g1": "pelvis"}
+DEFAULT_VELOCITY_FRAME = "pelvis"
+
+
 def forward_velocity(env: Any, data: Any) -> jax.Array:
     """Forward velocity of the robot base, preferring the env's own local-frame sensor."""
     local_linvel = getattr(env, "get_local_linvel", None)
-    if local_linvel is not None:
-        return local_linvel(data)[0]
-    return free_joint_forward_velocity(data)
+    if local_linvel is None:
+        return free_joint_forward_velocity(data)
+    required = [
+        name
+        for name, spec in inspect.signature(local_linvel).parameters.items()
+        if spec.default is inspect.Parameter.empty
+    ]
+    if len(required) > 1:
+        return local_linvel(data, DEFAULT_VELOCITY_FRAME)[0]
+    return local_linvel(data)[0]
 
 
 def base_position(data: Any) -> jax.Array:
