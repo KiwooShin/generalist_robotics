@@ -1,0 +1,8 @@
+{
+  "metrics": {
+    "total_finetune_steps": 4915200.0
+  },
+  "num_timesteps": 4915200,
+  "wall_clock_seconds": 351.04377178700815,
+  "steps_per_second": 0.0
+}

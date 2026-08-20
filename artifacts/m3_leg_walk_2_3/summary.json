@@ -1,0 +1,56 @@
+{
+  "spec": {
+    "n_legs": 4,
+    "leg_length": 0.5,
+    "torso_mass": 8.0,
+    "leg_mass": 1.5,
+    "hip_spacing": 0.15
+  },
+  "growth": [
+    {
+      "leg_index": 2,
+      "growth": 1.0
+    },
+    {
+      "leg_index": 3,
+      "growth": 0.0
+    }
+  ],
+  "total_mass": 12.506,
+  "stats": {
+    "survived_fraction": 0.9497500658035278,
+    "mean_forward_velocity": 0.5149514675140381,
+    "mean_forward_speed": 0.514962375164032,
+    "distance_travelled": 4.890750885009766,
+    "net_displacement": 5.148981094360352,
+    "episode_return": 35.035789489746094,
+    "nominal_leg_length": 0.512668,
+    "num_episodes": 8,
+    "num_steps": 4000
+  },
+  "froude": 0.05272854418845381,
+  "is_viable": true,
+  "gait": {
+    "duty_factors": [
+      0.5175,
+      0.6425,
+      0.4575,
+      0.0
+    ],
+    "phase_offsets": [
+      0.0,
+      0.49966617802130986,
+      0.2875068838447421,
+      0.0
+    ],
+    "stride_frequency": 1.75,
+    "contact_sequence_entropy": 2.4308791502857305
+  },
+  "gait_trace_steps": 400,
+  "eval_seconds": 25.22048000000359,
+  "reached_target": true,
+  "total_finetune_steps": 4915200,
+  "wall_clock_seconds": 351.04377178700815,
+  "num_waypoints": 8,
+  "bifurcation_alphas": []
+}

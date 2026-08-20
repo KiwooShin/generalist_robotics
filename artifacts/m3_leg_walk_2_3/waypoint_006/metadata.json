@@ -1,0 +1,13 @@
+{
+  "metrics": {
+    "alpha": 0.8750000000000001,
+    "total_mass": 12.31925,
+    "cumulative_steps": 4915200.0,
+    "survived_fraction": 1.0,
+    "mean_forward_speed": 0.4779321849346161,
+    "episode_return": 42.35055923461914
+  },
+  "num_timesteps": 0,
+  "wall_clock_seconds": 25.641026149998652,
+  "steps_per_second": 0.0
+}
