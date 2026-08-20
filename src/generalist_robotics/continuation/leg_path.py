@@ -72,11 +72,13 @@ from generalist_robotics.morphology.scaling import MorphParams
 from generalist_robotics.runtime.gpu import gpu_lock
 from generalist_robotics.training import ppo
 
-# How far above the floor the centre of a foot may be and still count as standing on it,
-# as a multiple of that foot's own radius. Read per leg off the model rather than as one
-# absolute height, because a half-grown leg carries a half-sized foot and would otherwise
-# be counted in stance while still in the air.
-STANCE_CLEARANCE = 1.5
+# How far above touching the floor the centre of a foot may be and still count as standing
+# on it, in metres. The threshold is that foot's own radius plus this margin, read per leg
+# off the model rather than set as one absolute height, because a half-grown leg carries a
+# half-sized foot and would otherwise be counted in stance while still in the air. Five
+# millimetres is a little more than a loaded foot sinks into the floor at these contact
+# stiffnesses, and a tenth of the clearance a stepping foot reaches.
+STANCE_MARGIN = 0.005
 
 # Control steps of a gait trace: the first are thrown away because the reset transient is
 # not a gait, and the rest are long enough to hold a dozen strides at any stride frequency
@@ -141,16 +143,22 @@ def default_multiped_config() -> config_dict.ConfigDict:
     long a foot should stay down or how often it should cycle. That is deliberate, because
     the gait is the measurement.
 
-    Two weights had to be set against observed failures rather than picked. The alive bonus
-    at 0.5 left diving forward - a whole episode of tracking reward compressed into fifty
-    steps - worth more than walking, so it is 1.5, at which standing still already beats
-    diving and walking beats standing still. And with no slip penalty at all the biped
-    learned to skate: fifty million steps of training produced a policy that held 0.49 m/s
-    with both feet permanently on the floor, oscillating over a nine-millimetre range and
-    never once leaving it, which has a duty factor of one and no gait to speak of. The
-    feet_slip term charges a foot for moving while it carries load, which is a statement
-    about friction and not about gait: it says a foot must be picked up to be moved
-    forward, and says nothing about when.
+    Three weights had to be set against observed failures rather than picked. The alive
+    bonus at 0.5 left diving forward - a whole episode of tracking reward compressed into
+    fifty steps - worth more than walking, so it is 1.5, at which standing still already
+    beats diving and walking beats standing still.
+
+    The other two are the cure for skating. With neither of them, fifty million steps
+    produced a biped that held 0.49 m/s with both feet permanently on the floor, its foot
+    heights oscillating over nine millimetres and never once leaving contact: a duty factor
+    of one, a stride frequency of zero, no gait at all. feet_slip alone, at a weight that
+    cost a third of a unit of reward per step, did not break it: the retrained policy still
+    dragged both feet, only slower. feet_air_time is what does, and it is the weakest
+    statement that can: it pays a foot, at the moment it lands, for the time it spent in
+    the air beyond air_time_threshold and up to air_time_cap. It is identical for every
+    leg, it is paid on landing so holding a foot up forever earns nothing, and it says
+    nothing about which legs swing together, in what order, or how often - which is exactly
+    what the gait signature measures and what must therefore not be prescribed here.
     """
     return config_dict.create(
         ctrl_dt=CTRL_TIMESTEP,
@@ -159,6 +167,8 @@ def default_multiped_config() -> config_dict.ConfigDict:
         action_scale=0.4,
         command_velocity=0.5,
         tracking_sigma=0.25,
+        air_time_threshold=0.1,
+        air_time_cap=0.2,
         min_torso_height=0.30,
         min_upright=0.5,
         joint_reset_noise=0.05,
@@ -172,6 +182,7 @@ def default_multiped_config() -> config_dict.ConfigDict:
             vertical_velocity=-0.3,
             yaw_rate=-0.3,
             feet_slip=-2.0,
+            feet_air_time=40.0,
             action_rate=-0.01,
             joint_deviation=-0.05,
         ),
@@ -217,7 +228,7 @@ class MultipedLocomotion(mjx_env.MjxEnv):
         )
         self._stance_heights = jnp.asarray(
             [
-                STANCE_CLEARANCE * float(self._model.geom(leg_geom_names(spec, leg)[2]).size[0])
+                float(self._model.geom(leg_geom_names(spec, leg)[2]).size[0]) + STANCE_MARGIN
                 for leg in range(spec.n_legs)
             ]
         )
@@ -327,7 +338,11 @@ class MultipedLocomotion(mjx_env.MjxEnv):
         )
         data = mjx.forward(self._mjx, data)
         last_action = jnp.zeros(self._model.nu)
-        info = {"rng": rng, "last_action": last_action}
+        info = {
+            "rng": rng,
+            "last_action": last_action,
+            "air_time": jnp.zeros(self.spec.n_legs),
+        }
         metrics = {"forward_velocity": jnp.zeros(()), "upright": jnp.zeros(())}
         return mjx_env.State(
             data=data,
@@ -351,12 +366,19 @@ class MultipedLocomotion(mjx_env.MjxEnv):
         return jnp.where(jnp.logical_or(jnp.logical_or(fallen, tipped), broken), 1.0, 0.0)
 
     def rewards(
-        self, data: mjx.Data, action: jax.Array, last_action: jax.Array
+        self,
+        data: mjx.Data,
+        action: jax.Array,
+        last_action: jax.Array,
+        contact: jax.Array,
+        air_time: jax.Array,
     ) -> dict[str, jax.Array]:
         """The reward terms, before their weights: track the command and stay a walker."""
         velocity = self.get_local_linvel(data)
         error = velocity[0] - self._config.command_velocity
         slip = jnp.sum(self.foot_velocities(data)[:, :2] ** 2, axis=1)
+        landed = jnp.logical_and(contact, air_time > 0.0)
+        swung = jnp.clip(air_time - self._config.air_time_threshold, 0.0, self._config.air_time_cap)
         return {
             "tracking_forward": jnp.exp(-(error**2) / self._config.tracking_sigma),
             "alive": jnp.ones(()),
@@ -364,7 +386,8 @@ class MultipedLocomotion(mjx_env.MjxEnv):
             "lateral_velocity": velocity[1] ** 2,
             "vertical_velocity": velocity[2] ** 2,
             "yaw_rate": data.qvel[5] ** 2,
-            "feet_slip": jnp.sum(jnp.where(self.foot_contacts(data), slip, 0.0)),
+            "feet_slip": jnp.sum(jnp.where(contact, slip, 0.0)),
+            "feet_air_time": jnp.sum(jnp.where(landed, swung, 0.0)),
             "action_rate": jnp.sum((action - last_action) ** 2),
             "joint_deviation": jnp.sum((data.qpos[7:] - self._home_qpos[7:]) ** 2),
         }
@@ -372,12 +395,15 @@ class MultipedLocomotion(mjx_env.MjxEnv):
     def step(self, state: mjx_env.State, action: jax.Array) -> mjx_env.State:
         """Advance one control step and score it."""
         data = mjx_env.step(self._mjx, state.data, self.motor_targets(action), self.n_substeps)
-        terms = self.rewards(data, action, state.info["last_action"])
+        contact = self.foot_contacts(data)
+        air_time = state.info["air_time"]
+        terms = self.rewards(data, action, state.info["last_action"], contact, air_time)
         scales = self._config.reward_scales
         total = sum(terms[name] * scales[name] for name in terms) * self.dt
         done = self.terminated(data)
         info = dict(state.info)
         info["last_action"] = action
+        info["air_time"] = jnp.where(contact, 0.0, air_time + self.dt)
         # Updated rather than rebuilt: brax's evaluation wrapper adds a "reward" entry of
         # its own, and a step that dropped it would change the scan carry's pytree.
         metrics = dict(state.metrics)
